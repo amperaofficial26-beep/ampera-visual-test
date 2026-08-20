@@ -15,7 +15,7 @@ const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=mater
 function add(scene,g,x,y,z,mat,cast=true){const m=new THREE.Mesh(g,mat);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;scene.add(m);return m;}
 function createGround(scene){
   const geometry=new THREE.PlaneGeometry(64,64,100,100),position=geometry.attributes.position,colors=[];
-  for(let i=0;i<position.count;i++){const x=position.getX(i),z=-position.getY(i);position.setZ(i,terrainHeight(x,z));const c=new THREE.Color().setHSL(.25+Math.random()*.035,.32,.28+Math.random()*.13);colors.push(c.r,c.g,c.b);}
+  for(let i=0;i<position.count;i++){const x=position.getX(i),z=-position.getY(i);position.setZ(i,terrainHeight(x,z));const c=new THREE.Color().setHSL(.30+Math.random()*.025,.48,.32+Math.random()*.11);colors.push(c.r,c.g,c.b);}
   geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.computeVertexNormals();
   const ground=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.97}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
 }
