@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { terrainHeight } from './terrain.js';
 
 // Semua aset di bawah sudah berada di docs/assets/models/ pada repository GitHub.
 const MODELS={
@@ -33,7 +34,7 @@ function fitToHeight(model,targetHeight){
 }
 async function place(scene,key,{position,rotationY=0,height=5,name,facadeSide=null}){
   try{
-    const model=(await sourceModel(key)).clone(true);model.name=name;model.position.fromArray(position);model.rotation.y=rotationY;fitToHeight(model,height);scene.add(model);
+    const model=(await sourceModel(key)).clone(true);model.name=name;model.position.fromArray(position);model.rotation.y=rotationY;fitToHeight(model,height);model.position.y+=terrainHeight(position[0],position[2]);scene.add(model);
     if(facadeSide)upgradeSquareFacade(scene,model,facadeSide);
     return model;
   }catch(error){console.warn(`Gagal memuat ${key}: ${MODELS[key]}`,error);return null;}
@@ -66,8 +67,9 @@ export async function loadVillageModels(scene){
   const types=['houseA','houseB','houseC','houseA','houseB','houseC'];
   const jobs=[];
   // Tinggi dinaikkan sedikit agar rumah kecil tidak kalah besar dari variasi rumah lain.
-  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:6.2,name:`village_house_left_${i}`,facadeSide:types[i]==='houseA'?'left':null})));
-  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:6.2,name:`village_house_right_${i}`,facadeSide:key==='houseA'?'right':null}));});
+  // Model GLB sudah memiliki struktur sendiri; facade tambahan dinonaktifkan agar tidak ada balok kayu melayang.
+  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:6.2,name:`village_house_left_${i}`})));
+  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:6.2,name:`village_house_right_${i}`}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
   // Props memakai scale berdasarkan tinggi dunia juga agar proporsinya konsisten.
