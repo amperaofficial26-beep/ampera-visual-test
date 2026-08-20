@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { addTudorWallDetails } from './tudor_wall_details.js';
 
 // Material procedural PBR ringan: tidak membutuhkan file texture eksternal.
 function canvasTexture(draw, repeatX=1, repeatY=1) {
@@ -32,7 +33,8 @@ export function createTudorHouse(x,z,rotation=0,scale=1,variant=0){
   // 1. Ground floor batu: lebih sempit dan lebih tinggi, memberi rasio rumah yang besar terhadap player.
   house.add(mesh(new THREE.BoxGeometry(LOWER_W,LOWER_H,LOWER_D),stoneMat,0,LOWER_H/2,0));addStoneCorners(house);
   // 2. Upper floor plaster: lebih besar daripada batu bawah untuk overhang/jetty Tudor.
-  house.add(mesh(new THREE.BoxGeometry(UPPER_W,UPPER_H,UPPER_D),plasterMat,0,LOWER_H+UPPER_H/2,0));addTimberFrame(house);
+  house.add(mesh(new THREE.BoxGeometry(UPPER_W,UPPER_H,UPPER_D),plasterMat,0,LOWER_H+UPPER_H/2,0));
+  addTudorWallDetails(house,{width:UPPER_W,depth:UPPER_D,lowerHeight:LOWER_H,upperHeight:UPPER_H,woodMaterial:woodMat});
   // 3. Gable roof: lebih lebar dari upper floor sehingga ada eave/overhang yang jelas.
   const roof=new THREE.Mesh(gableRoofGeometry(3.62,3.08,LOWER_H+UPPER_H-.03,LOWER_H+UPPER_H+1.62),roofMat);roof.castShadow=roof.receiveShadow=true;house.add(roof);addRoofEaves(house);
   // 4. Pintu dan jendela.
