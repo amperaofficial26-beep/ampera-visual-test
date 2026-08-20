@@ -31,10 +31,28 @@ function fitToHeight(model,targetHeight){
   // Setiap model berdiri tepat di tanah, meskipun origin file GLB berbeda.
   model.position.y-=box.min.y;
 }
-async function place(scene,key,{position,rotationY=0,height=5,name}){
+async function place(scene,key,{position,rotationY=0,height=5,name,facadeSide=null}){
   try{
-    const model=(await sourceModel(key)).clone(true);model.name=name;model.position.fromArray(position);model.rotation.y=rotationY;fitToHeight(model,height);scene.add(model);return model;
+    const model=(await sourceModel(key)).clone(true);model.name=name;model.position.fromArray(position);model.rotation.y=rotationY;fitToHeight(model,height);scene.add(model);
+    if(facadeSide)upgradeSquareFacade(scene,model,facadeSide);
+    return model;
   }catch(error){console.warn(`Gagal memuat ${key}: ${MODELS[key]}`,error);return null;}
+}
+function upgradeSquareFacade(scene,model,side){
+  // Upgrade arsitektur untuk model house yang memiliki dinding datar: jendela, balok kayu dan balkon menghadap jalan.
+  const box=new THREE.Box3().setFromObject(model),center=box.getCenter(new THREE.Vector3());
+  const height=box.max.y-box.min.y,frontX=side==='left'?box.max.x+.035:box.min.x-.035;
+  const wood=new THREE.MeshStandardMaterial({color:0x35251c,roughness:.82});
+  const glass=new THREE.MeshStandardMaterial({color:0x82b9c8,roughness:.25,metalness:.08,emissive:0x102d41,emissiveIntensity:.18});
+  const direction=side==='left'?1:-1;
+  const detail=new THREE.Group();detail.name=`facade_upgrade_${model.name}`;
+  // Frame vertikal/horizontal bergaya Tudor pada dinding datar.
+  for(const z of[-1.0,0,1.0]){const beam=new THREE.Mesh(new THREE.BoxGeometry(.12,height*.68,.12),wood);beam.position.set(frontX,box.min.y+height*.53,center.z+z);detail.add(beam);}
+  for(const y of[box.min.y+height*.35,box.min.y+height*.65]){const beam=new THREE.Mesh(new THREE.BoxGeometry(.12,.1,2.45),wood);beam.position.set(frontX,y,center.z);detail.add(beam);}
+  // Dua jendela dan balkon kecil menghadap street.
+  for(const z of[-.56,.56]){const frame=new THREE.Mesh(new THREE.BoxGeometry(.09,.68,.52),wood);frame.position.set(frontX,box.min.y+height*.61,center.z+z);detail.add(frame);const win=new THREE.Mesh(new THREE.PlaneGeometry(.39,.53),glass);win.position.set(frontX+direction*.052,box.min.y+height*.61,center.z+z);win.rotation.y=Math.PI/2;detail.add(win);}
+  const balcony=new THREE.Mesh(new THREE.BoxGeometry(.58,.12,1.65),wood);balcony.position.set(frontX+direction*.28,box.min.y+height*.35,center.z);detail.add(balcony);
+  scene.add(detail);
 }
 function hideProceduralBuildings(scene){
   scene.traverse((node)=>{if(node.name?.startsWith('fallback_house_')||node.name==='fallback_clock_tower')node.visible=false;});
@@ -47,8 +65,9 @@ export async function loadVillageModels(scene){
   const right=[[8.5,0,7.5,-.05],[8.5,0,3.4,.04],[8.5,0,-.7,-.03],[8.5,0,-4.8,.05],[8.5,0,-8.9,-.04],[8.5,0,-13.0,.04]];
   const types=['houseA','houseB','houseC','houseA','houseB','houseC'];
   const jobs=[];
-  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.6,name:`village_house_left_${i}`})));
-  right.forEach((item,i)=>jobs.push(place(scene,types[(i+1)%types.length],{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:5.6,name:`village_house_right_${i}`})));
+  // Tinggi dinaikkan sedikit agar rumah kecil tidak kalah besar dari variasi rumah lain.
+  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:6.2,name:`village_house_left_${i}`,facadeSide:types[i]==='houseA'?'left':null})));
+  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:6.2,name:`village_house_right_${i}`,facadeSide:key==='houseA'?'right':null}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
   // Props memakai scale berdasarkan tinggi dunia juga agar proporsinya konsisten.
