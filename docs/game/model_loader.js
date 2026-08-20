@@ -64,12 +64,22 @@ async function place(scene, key, { position, rotationY = 0, scale = 1, name }) {
 // Posisi mengikuti layout street yang sudah ada; angka scale mungkin perlu disesuaikan sekali setelah model di-download.
 export async function loadVillageModels(scene) {
   const jobs = [];
-  const housesLeft = [[-4.8,0,5.3,.12,1.15],[-4.65,0,1.2,-.08,1.03],[-4.5,0,-2.9,.08,1.22],[-4.35,0,-7.1,-.1,.95]];
-  const housesRight = [[4.8,0,5.1,-.1,1.12],[4.65,0,1.1,.11,.96],[4.55,0,-3.1,-.12,1.18],[4.3,0,-7,.08,.9]];
+  const housesLeft = [
+  [-6.4, 0, 5.3, .12, 1.15],
+  [-6.2, 0, 1.2, -.08, 1.03],
+  [-6.3, 0, -2.9, .08, 1.22],
+  [-6.1, 0, -7.1, -.1, .95]
+];
+  const housesRight = [
+  [6.4, 0, 5.1, -.1, 1.12],
+  [6.2, 0, 1.1, .11, .96],
+  [6.3, 0, -3.1, -.12, 1.18],
+  [6.1, 0, -7, .08, .9]
+];
   // Model Quaternius memakai satuan kecil; scale 3 membuat tinggi rumah proporsional terhadap player.
-  housesLeft.forEach((h, i) => jobs.push(place(scene, i % 2 ? 'houseB' : 'houseA', { position:[h[0],h[1],h[2]], rotationY:Math.PI / 2 + h[3], scale:h[4] * 3, name:`model_house_left_${i}` })));
-  housesRight.forEach((h, i) => jobs.push(place(scene, i % 2 ? 'houseA' : 'houseB', { position:[h[0],h[1],h[2]], rotationY:-Math.PI / 2 + h[3], scale:h[4] * 3, name:`model_house_right_${i}` })));
-  jobs.push(place(scene, 'tower', { position:[0,0,-14], scale:2.2, name:'model_clock_tower' }));
+  housesLeft.forEach((h, i) => jobs.push(place(scene, i % 2 ? 'houseB' : 'houseA', { position:[h[0],h[1],h[2]], rotationY:Math.PI / 2 + h[3], scale:h[4] * 1.6, name:`model_house_left_${i}` })));
+  housesRight.forEach((h, i) => jobs.push(place(scene, i % 2 ? 'houseA' : 'houseB', { position:[h[0],h[1],h[2]], rotationY:-Math.PI / 2 + h[3], scale:h[4] * 1.6, name:`model_house_right_${i}` })));
+  jobs.push(place(scene, 'tower', { position:[0,0,-20], scale:1.0, name:'model_clock_tower' }));
   jobs.push(place(scene, 'barrel', { position:[2.4,0,2.5], scale:.55 }));
   jobs.push(place(scene, 'barrel', { position:[2.9,0,2.55], scale:.48, rotationY:.5 }));
   jobs.push(place(scene, 'crate', { position:[2.55,0,2.0], scale:.48 }));
