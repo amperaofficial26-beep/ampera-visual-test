@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { createTudorHouse } from './tudor_house.js';
 
 // Versi Three.js dari brief medieval village. Pencahayaan/shadow/PBR ringan dibuat untuk browser.
 export function buildWorld(scene) {
@@ -21,8 +22,8 @@ function createCobblestoneStreet(scene){
 function createStreetBuildings(scene){
   const left=[[-4.8,5.3,.12,1.15],[-4.65,1.2,-.08,1.03],[-4.5,-2.9,.08,1.22],[-4.35,-7.1,-.1,.95]];
   const right=[[4.8,5.1,-.1,1.12],[4.65,1.1,.11,.96],[4.55,-3.1,-.12,1.18],[4.3,-7.0,.08,.9]];
-  left.forEach((d,i)=>tudorHouse(scene,d[0],d[1],Math.PI/2+d[2],d[3],i));
-  right.forEach((d,i)=>tudorHouse(scene,d[0],d[1],-Math.PI/2+d[2],d[3],i+4));
+  left.forEach((d,i)=>scene.add(createTudorHouse(d[0],d[1],Math.PI/2+d[2],d[3],i)));
+  right.forEach((d,i)=>scene.add(createTudorHouse(d[0],d[1],-Math.PI/2+d[2],d[3],i+4)));
 }
 function tudorHouse(scene,x,z,rot,s,index){
   const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;g.scale.setScalar(s);scene.add(g);
