@@ -12,19 +12,19 @@ export function buildWorld(scene) {
 const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
 function add(scene,g,x,y,z,mat,cast=true){const m=new THREE.Mesh(g,mat);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;scene.add(m);return m;}
-function createGround(scene){const ground=add(scene,new THREE.PlaneGeometry(52,52),0,-.04,0,material(0x627b4e,.98),false);ground.rotation.x=-Math.PI/2;}
+function createGround(scene){const ground=add(scene,new THREE.PlaneGeometry(64,64),0,-.04,0,material(0x627b4e,.98),false);ground.rotation.x=-Math.PI/2;}
 function createCobblestoneStreet(scene){
   // Batu jalan dihasilkan satu per satu agar ukuran, posisi, warna dan celahnya bervariasi.
   const cobbles=new THREE.Group();const variants=[material(0x77736d,.95),material(0x8b8378,.95),material(0x625f5c,.95),material(0x9a8d7b,.95)];
-  for(let row=0;row<44;row++){const z=7-row*.57;for(let col=-4;col<=4;col++){if(Math.random()<.11)continue;const width=.36+Math.random()*.18,depth=.32+Math.random()*.15;const rock=new THREE.Mesh(new THREE.BoxGeometry(width,.07+Math.random()*.035,depth),variants[Math.floor(Math.random()*variants.length)]);rock.position.set(col*.5+(Math.random()-.5)*.08,.02,z+(Math.random()-.5)*.07);rock.rotation.y=(Math.random()-.5)*.15;rock.castShadow=rock.receiveShadow=true;cobbles.add(rock);if(Math.random()<.14){const grass=new THREE.Mesh(new THREE.PlaneGeometry(.1,.18),moss);grass.rotation.x=-Math.PI/2;grass.position.set(rock.position.x+.18,.075,rock.position.z+.2);cobbles.add(grass);}}
+  for(let row=0;row<58;row++){const z=8-row*.57;for(let col=-4;col<=4;col++){if(Math.random()<.11)continue;const width=.36+Math.random()*.18,depth=.32+Math.random()*.15;const rock=new THREE.Mesh(new THREE.BoxGeometry(width,.07+Math.random()*.035,depth),variants[Math.floor(Math.random()*variants.length)]);rock.position.set(col*.5+(Math.random()-.5)*.08,.02,z+(Math.random()-.5)*.07);rock.rotation.y=(Math.random()-.5)*.15;rock.castShadow=rock.receiveShadow=true;cobbles.add(rock);if(Math.random()<.14){const grass=new THREE.Mesh(new THREE.PlaneGeometry(.1,.18),moss);grass.rotation.x=-Math.PI/2;grass.position.set(rock.position.x+.18,.075,rock.position.z+.2);cobbles.add(grass);}}
   }scene.add(cobbles);
 }
 function createStreetBuildings(scene){
   const left=[[-4.8,5.3,.12,1.15],[-4.65,1.2,-.08,1.03],[-4.5,-2.9,.08,1.22],[-4.35,-7.1,-.1,.95]];
   const right=[[4.8,5.1,-.1,1.12],[4.65,1.1,.11,.96],[4.55,-3.1,-.12,1.18],[4.3,-7.0,.08,.9]];
-  // Skala 1.5x: rumah kini terasa besar dibanding karakter pemain.
-  left.forEach((d,i)=>scene.add(createTudorHouse(d[0],d[1],Math.PI/2+d[2],d[3]*1.5,i)));
-  right.forEach((d,i)=>scene.add(createTudorHouse(d[0],d[1],-Math.PI/2+d[2],d[3]*1.5,i+4)));
+  // Fallback procedural diberi nama agar otomatis disembunyikan jika file GLB yang setara berhasil dimuat.
+  left.forEach((d,i)=>{const house=createTudorHouse(d[0],d[1],Math.PI/2+d[2],d[3]*1.5,i);house.name=`fallback_house_left_${i}`;scene.add(house);});
+  right.forEach((d,i)=>{const house=createTudorHouse(d[0],d[1],-Math.PI/2+d[2],d[3]*1.5,i+4);house.name=`fallback_house_right_${i}`;scene.add(house);});
 }
 function tudorHouse(scene,x,z,rot,s,index){
   const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;g.scale.setScalar(s);scene.add(g);
@@ -44,7 +44,7 @@ function tudorHouse(scene,x,z,rot,s,index){
 function addFlowerBox(group,x,y,z){const box=new THREE.Mesh(new THREE.BoxGeometry(.48,.17,.2),wood);box.position.set(x,y,z);group.add(box);for(let i=0;i<4;i++){const flower=new THREE.Mesh(new THREE.SphereGeometry(.055,6,5),new THREE.MeshBasicMaterial({color:i%2?0xff6d7b:0xffdc70}));flower.position.set(x-.14+i*.09,y+.16,z-.03);group.add(flower);}}
 function addHangingFlag(group,x,y,z){const pole=new THREE.Mesh(new THREE.BoxGeometry(.05,.65,.05),timber);pole.position.set(x,y,z);group.add(pole);const flag=new THREE.Mesh(new THREE.PlaneGeometry(.34,.48),new THREE.MeshBasicMaterial({color:0xa92e35,side:THREE.DoubleSide}));flag.position.set(x+.17,y-.04,z-.02);group.add(flag);}
 function createClockTower(scene){
-  const g=new THREE.Group();g.position.set(0,0,-14);scene.add(g);
+  const g=new THREE.Group();g.name='fallback_clock_tower';g.position.set(0,0,-14);scene.add(g);
   const body=new THREE.Mesh(new THREE.BoxGeometry(3.05,8.4,3.05),darkStone);body.position.y=4.2;body.castShadow=body.receiveShadow=true;g.add(body);
   const ledge=new THREE.Mesh(new THREE.BoxGeometry(3.38,.28,3.38),stone);ledge.position.y=6.25;g.add(ledge);
   for(const z of[-1.54,1.54])for(const x of[-1.54,1.54]){const turret=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,1.0,7),stone);turret.position.set(x,6.8,z);g.add(turret);}
