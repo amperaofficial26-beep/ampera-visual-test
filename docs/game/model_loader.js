@@ -63,6 +63,18 @@ async function place(scene, key, { position, rotationY = 0, scale = 1, name, fal
 // Posisi mengikuti layout street yang sudah ada; angka scale mungkin perlu disesuaikan sekali setelah model di-download.
 export async function loadVillageModels(scene) {
   const jobs = [];
+
+  // MODE UJI RINGAN: hanya dua model rumah dimuat dulu.
+  // Ini mencegah browser mem-parsing belasan GLB bersamaan saat kita menguji GPU/laptop.
+  const SAFE_TEST_MODE = true;
+  if (SAFE_TEST_MODE) {
+    jobs.push(place(scene, 'houseA', { position:[-8.7,0,7], rotationY:-Math.PI / 2 + .08, scale:1.55, name:'model_house_left_0', fallbackName:'fallback_house_left_0' }));
+    jobs.push(place(scene, 'houseC', { position:[8.7,0,6.8], rotationY:Math.PI / 2 - .08, scale:1.62, name:'model_house_right_0', fallbackName:'fallback_house_right_0' }));
+    await Promise.all(jobs);
+    return;
+  }
+
+  // Mode desa penuh: aktifkan setelah mode uji ringan stabil.
   // Desa lebih padat: rumah dibesarkan dan dipindahkan lebih jauh dari jalan utama.
   // Front rumah dirotasi MENGHADAP jalan: kiri → +X, kanan → -X.
   const housesLeft = [[-8.7,0,7,.08,1.55],[-8.3,0,3.4,-.07,1.7],[-8.8,0,-.4,.05,1.62],[-8.4,0,-4.3,-.08,1.78],[-8.7,0,-8.1,.06,1.58],[-8.3,0,-11.8,-.06,1.7]];
