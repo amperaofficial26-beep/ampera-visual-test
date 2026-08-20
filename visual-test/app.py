@@ -4,7 +4,7 @@ import streamlit.components.v1 as components
 st.set_page_config(page_title="Ampera Visual Test", page_icon="🏞️", layout="wide")
 
 # Isi URL ini setelah folder docs/ project dideploy ke GitHub Pages.
-GAME_URL = "https://GITHUB_USERNAME.github.io/ampera-visual-test/"
+GAME_URL = "https://amperaofficial26-beep.github.io/ampera-visual-test/"
 
 st.title("🏞️ Ampera Visual Test")
 st.caption("Demo eksplorasi 3D: manusia, desa medieval, pemandangan sore, dan monster hutan.")
