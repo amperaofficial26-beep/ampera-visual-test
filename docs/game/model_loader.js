@@ -40,7 +40,7 @@ async function getModel(key) {
   return cache.get(key);
 }
 
-async function place(scene, key, { position, rotationY = 0, scale = 1, name }) {
+async function place(scene, key, { position, rotationY = 0, scale = 1, name, fallbackName = null }) {
   try {
     const source = await getModel(key);
     const model = source.clone(true);
@@ -50,10 +50,8 @@ async function place(scene, key, { position, rotationY = 0, scale = 1, name }) {
     model.scale.setScalar(scale);
     scene.add(model);
     // Bila model 3D berhasil dimuat, sembunyikan bangunan procedural yang posisinya sama.
-    if (name && name.startsWith('model_')) {
-      const fallback = scene.getObjectByName(name.replace('model_', 'fallback_'));
-      if (fallback) fallback.visible = false;
-    }
+    const fallback = scene.getObjectByName(fallbackName || (name && name.startsWith('model_') ? name.replace('model_', 'fallback_') : ''));
+    if (fallback) fallback.visible = false;
     return model;
   } catch (error) {
     // Fallback primitive tetap tampil apabila user belum meng-upload aset GLB tertentu.
@@ -65,15 +63,16 @@ async function place(scene, key, { position, rotationY = 0, scale = 1, name }) {
 // Posisi mengikuti layout street yang sudah ada; angka scale mungkin perlu disesuaikan sekali setelah model di-download.
 export async function loadVillageModels(scene) {
   const jobs = [];
-  // Rumah dijauhkan dari pusat jalan agar street terasa terbuka, bukan lorong tertutup.
-  const housesLeft = [[-6.4,0,5.3,.12,1.15],[-6.2,0,1.2,-.08,1.03],[-6.3,0,-2.9,.08,1.22],[-6.1,0,-7.1,-.1,.95]];
-  const housesRight = [[6.4,0,5.1,-.1,1.12],[6.2,0,1.1,.11,.96],[6.3,0,-3.1,-.12,1.18],[6.1,0,-7,.08,.9]];
-  // Variasi model rumah: street tidak lagi memakai satu house GLB yang sama berulang-ulang.
-  const leftTypes=['houseA','houseB','inn','blacksmith'];
-  const rightTypes=['houseC','houseA','houseB','inn'];
-  housesLeft.forEach((h, i) => jobs.push(place(scene, leftTypes[i], { position:[h[0],h[1],h[2]], rotationY:Math.PI / 2 + h[3], scale:h[4] * 1.45, name:`model_house_left_${i}` })));
-  housesRight.forEach((h, i) => jobs.push(place(scene, rightTypes[i], { position:[h[0],h[1],h[2]], rotationY:-Math.PI / 2 + h[3], scale:h[4] * 1.45, name:`model_house_right_${i}` })));
-  jobs.push(place(scene, 'tower', { position:[0,0,-20], scale:1.0, name:'model_clock_tower' }));
+  // Desa lebih padat: rumah dibesarkan dan dipindahkan lebih jauh dari jalan utama.
+  // Front rumah dirotasi MENGHADAP jalan: kiri → +X, kanan → -X.
+  const housesLeft = [[-8.7,0,7,.08,1.55],[-8.3,0,3.4,-.07,1.7],[-8.8,0,-.4,.05,1.62],[-8.4,0,-4.3,-.08,1.78],[-8.7,0,-8.1,.06,1.58],[-8.3,0,-11.8,-.06,1.7]];
+  const housesRight = [[8.7,0,6.8,-.08,1.62],[8.4,0,3.0,.05,1.72],[8.8,0,-.7,-.05,1.58],[8.35,0,-4.5,.08,1.76],[8.7,0,-8.2,-.07,1.64],[8.3,0,-11.9,.06,1.7]];
+  const leftTypes=['houseA','houseB','inn','blacksmith','houseC','houseA'];
+  const rightTypes=['houseC','houseA','houseB','inn','blacksmith','houseB'];
+  housesLeft.forEach((h, i) => jobs.push(place(scene, leftTypes[i], { position:[h[0],h[1],h[2]], rotationY:-Math.PI / 2 + h[3], scale:h[4], name:`model_house_left_${i}`, fallbackName:i<4?`fallback_house_left_${i}`:null })));
+  housesRight.forEach((h, i) => jobs.push(place(scene, rightTypes[i], { position:[h[0],h[1],h[2]], rotationY:Math.PI / 2 + h[3], scale:h[4], name:`model_house_right_${i}`, fallbackName:i<4?`fallback_house_right_${i}`:null })));
+  // Parameter fallbackName memastikan hanya Bell Tower GLB yang terlihat, bukan dua tower sekaligus.
+  jobs.push(place(scene, 'tower', { position:[0,0,-23], scale:1.15, name:'model_clock_tower', fallbackName:'fallback_clock_tower' }));
   // Props GLB menggantikan dekorasi utama dekat jalan.
   jobs.push(place(scene, 'barrel', { position:[2.4,0,2.5], scale:.62 }));
   jobs.push(place(scene, 'barrel', { position:[2.9,0,2.55], scale:.55, rotationY:.5 }));
