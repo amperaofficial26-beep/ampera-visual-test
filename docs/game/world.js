@@ -1,18 +1,58 @@
 import * as THREE from 'three';
 
-export function buildWorld(scene){
-  scene.background=new THREE.Color(0x91c2dc);scene.fog=new THREE.Fog(0x91c2dc,17,43);
-  scene.add(new THREE.HemisphereLight(0xffefc7,0x335237,2.1));const sun=new THREE.DirectionalLight(0xffb36f,3.1);sun.position.set(-10,15,8);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
-  const terrain=new THREE.Mesh(new THREE.PlaneGeometry(38,30,56,44),new THREE.MeshStandardMaterial({color:0x668a4c,roughness:.96,vertexColors:true}));terrain.rotation.x=-Math.PI/2;terrain.receiveShadow=true;const pos=terrain.geometry.attributes.position;const cols=[];for(let i=0;i<pos.count;i++){const x=pos.getX(i),z=-pos.getY(i),h=(Math.sin(x*.42)+Math.cos(z*.37))*.12;pos.setZ(i,h);const c=new THREE.Color().setHSL(.25+Math.random()*.035,.32,.28+Math.random()*.13);cols.push(c.r,c.g,c.b);}terrain.geometry.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));terrain.geometry.computeVertexNormals();scene.add(terrain);
-  const road=new THREE.Mesh(new THREE.PlaneGeometry(27,4.4),new THREE.MeshStandardMaterial({color:0x9b7658,roughness:.95}));road.rotation.x=-Math.PI/2;road.position.y=.03;road.receiveShadow=true;scene.add(road);
-  createRiver(scene);createVillage(scene);createForest(scene);createGrass(scene);createSkyParticles(scene);
+// Versi Three.js dari brief medieval village. Pencahayaan/shadow/PBR ringan dibuat untuk browser.
+export function buildWorld(scene) {
+  scene.background=new THREE.Color(0x73b5df);scene.fog=new THREE.Fog(0x9bc9e2,30,68);
+  scene.add(new THREE.HemisphereLight(0xdff2ff,0x31415a,1.65));
+  const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
+  const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
+  createGround(scene);createCobblestoneStreet(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createClouds(scene);
 }
-function createVillage(scene){const places=[[-5,-3,0],[-2,3,.4],[2,3,-.25],[5,-2,.2],[7,4,.25],[-7,4,-.2]];places.forEach((p,i)=>house(scene,...p,1+(i%2)*.16));
-  const well=new THREE.Mesh(new THREE.CylinderGeometry(.7,.82,.55,10),new THREE.MeshStandardMaterial({color:0x6b7173,roughness:.85}));well.position.set(-.3,.28,-1.4);well.castShadow=well.receiveShadow=true;scene.add(well);
+const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
+const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
+function add(scene,g,x,y,z,mat,cast=true){const m=new THREE.Mesh(g,mat);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;scene.add(m);return m;}
+function createGround(scene){const ground=add(scene,new THREE.PlaneGeometry(52,52),0,-.04,0,material(0x627b4e,.98),false);ground.rotation.x=-Math.PI/2;}
+function createCobblestoneStreet(scene){
+  // Batu jalan dihasilkan satu per satu agar ukuran, posisi, warna dan celahnya bervariasi.
+  const cobbles=new THREE.Group();const variants=[material(0x77736d,.95),material(0x8b8378,.95),material(0x625f5c,.95),material(0x9a8d7b,.95)];
+  for(let row=0;row<44;row++){const z=7-row*.57;for(let col=-4;col<=4;col++){if(Math.random()<.11)continue;const width=.36+Math.random()*.18,depth=.32+Math.random()*.15;const rock=new THREE.Mesh(new THREE.BoxGeometry(width,.07+Math.random()*.035,depth),variants[Math.floor(Math.random()*variants.length)]);rock.position.set(col*.5+(Math.random()-.5)*.08,.02,z+(Math.random()-.5)*.07);rock.rotation.y=(Math.random()-.5)*.15;rock.castShadow=rock.receiveShadow=true;cobbles.add(rock);if(Math.random()<.14){const grass=new THREE.Mesh(new THREE.PlaneGeometry(.1,.18),moss);grass.rotation.x=-Math.PI/2;grass.position.set(rock.position.x+.18,.075,rock.position.z+.2);cobbles.add(grass);}}
+  }scene.add(cobbles);
 }
-function house(scene,x,z,r,s){const g=new THREE.Group();g.position.set(x,.05,z);g.rotation.y=r;g.scale.setScalar(s);const wall=new THREE.MeshStandardMaterial({color:0xddd0af,roughness:.9});const wood=new THREE.MeshStandardMaterial({color:0x563a2a,roughness:.85});const roofMat=new THREE.MeshStandardMaterial({color:0x70433c,roughness:.78});const base=new THREE.Mesh(new THREE.BoxGeometry(2.1,1.3,1.65),wall);base.position.y=.67;base.castShadow=base.receiveShadow=true;g.add(base);for(const px of[-.85,.85]){const beam=new THREE.Mesh(new THREE.BoxGeometry(.13,1.45,.12),wood);beam.position.set(px,.73,-.86);g.add(beam);}const beam=new THREE.Mesh(new THREE.BoxGeometry(2.1,.12,.1),wood);beam.position.set(0,1.1,-.87);g.add(beam);const roof=new THREE.Mesh(new THREE.ConeGeometry(1.65,1.25,4),roofMat);roof.rotation.y=Math.PI/4;roof.position.y=1.93;roof.castShadow=true;g.add(roof);const door=new THREE.Mesh(new THREE.PlaneGeometry(.38,.68),new THREE.MeshBasicMaterial({color:0x31251e}));door.position.set(0,.46,-.831);g.add(door);scene.add(g);}
-function createForest(scene){for(let i=0;i<28;i++){const x=(Math.random()-.5)*34,z=(Math.random()>.5?1:-1)*(4+Math.random()*9);tree(scene,x,z,.7+Math.random()*.65);}for(let i=0;i<28;i++){const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(.2+Math.random()*.38,0),new THREE.MeshStandardMaterial({color:0x677069,roughness:.93}));rock.position.set((Math.random()-.5)*32,.2,(Math.random()-.5)*22);rock.scale.y=.62;rock.castShadow=true;scene.add(rock);}}
-function tree(scene,x,z,s){const g=new THREE.Group();g.position.set(x,0,z);g.scale.setScalar(s);const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.16,.24,1.6,7),new THREE.MeshStandardMaterial({color:0x5a3f2b,roughness:.9}));trunk.position.y=.8;trunk.castShadow=true;g.add(trunk);for(const [y,r] of [[1.55,.8],[2,.63],[2.35,.43]]){const leaves=new THREE.Mesh(new THREE.ConeGeometry(r,1.05,7),new THREE.MeshStandardMaterial({color:0x315f3c,roughness:.86}));leaves.position.y=y;leaves.castShadow=true;g.add(leaves);}scene.add(g);}
-function createRiver(scene){const water=new THREE.Mesh(new THREE.PlaneGeometry(38,2.25),new THREE.MeshStandardMaterial({color:0x4a9cc3,metalness:.35,roughness:.25}));water.rotation.x=-Math.PI/2;water.position.set(0,.02,-8.5);scene.add(water);}
-function createGrass(scene){const geo=new THREE.PlaneGeometry(.055,.45);geo.translate(0,.225,0);const mat=new THREE.MeshBasicMaterial({color:0x426f35,side:THREE.DoubleSide});const grass=new THREE.InstancedMesh(geo,mat,1500),m=new THREE.Matrix4(),q=new THREE.Quaternion(),v=new THREE.Vector3();for(let i=0;i<1500;i++){let x,z;do{x=(Math.random()-.5)*34;z=(Math.random()-.5)*24;}while(Math.abs(z)<2.5);v.set(x,.01,z);q.setFromAxisAngle(new THREE.Vector3(0,1,0),Math.random()*Math.PI);m.compose(v,q,new THREE.Vector3(1,Math.random()*.8+.6,1));grass.setMatrixAt(i,m);}scene.add(grass);}
-function createSkyParticles(scene){const g=new THREE.BufferGeometry(),p=[];for(let i=0;i<120;i++)p.push((Math.random()-.5)*35,Math.random()*8+1,(Math.random()-.5)*25);g.setAttribute('position',new THREE.Float32BufferAttribute(p,3));scene.add(new THREE.Points(g,new THREE.PointsMaterial({color:0xffedb0,size:.04,transparent:true,opacity:.65})));}
+function createStreetBuildings(scene){
+  const left=[[-4.8,5.3,.12,1.15],[-4.65,1.2,-.08,1.03],[-4.5,-2.9,.08,1.22],[-4.35,-7.1,-.1,.95]];
+  const right=[[4.8,5.1,-.1,1.12],[4.65,1.1,.11,.96],[4.55,-3.1,-.12,1.18],[4.3,-7.0,.08,.9]];
+  left.forEach((d,i)=>tudorHouse(scene,d[0],d[1],Math.PI/2+d[2],d[3],i));
+  right.forEach((d,i)=>tudorHouse(scene,d[0],d[1],-Math.PI/2+d[2],d[3],i+4));
+}
+function tudorHouse(scene,x,z,rot,s,index){
+  const g=new THREE.Group();g.position.set(x,0,z);g.rotation.y=rot;g.scale.setScalar(s);scene.add(g);
+  const lower=new THREE.Mesh(new THREE.BoxGeometry(2.55,1.32,2.18),stone);lower.position.y=.66;lower.castShadow=lower.receiveShadow=true;g.add(lower);
+  const upper=new THREE.Mesh(new THREE.BoxGeometry(2.72,1.32,2.33),plaster);upper.position.y=1.93;upper.castShadow=upper.receiveShadow=true;g.add(upper);
+  // Rangka kayu gelap gaya Tudor pada fasad, termasuk balok horizontal dan diagonal.
+  for(const y of[1.32,1.37,2.52]){const beam=new THREE.Mesh(new THREE.BoxGeometry(2.82,.11,.12),timber);beam.position.set(0,y,-1.21);g.add(beam);}
+  for(const xx of[-1.14,0,1.14]){const beam=new THREE.Mesh(new THREE.BoxGeometry(.13,1.35,.13),timber);beam.position.set(xx,1.93,-1.22);g.add(beam);}
+  for(const sign of[-1,1]){const brace=new THREE.Mesh(new THREE.BoxGeometry(.1,1.38,.1),timber);brace.position.set(sign*.55,1.93,-1.24);brace.rotation.z=sign*.7;g.add(brace);}
+  const roofMesh=new THREE.Mesh(new THREE.ConeGeometry(2.13,1.25,4),roof);roofMesh.position.y=3.22;roofMesh.rotation.y=Math.PI/4;roofMesh.castShadow=true;g.add(roofMesh);
+  // Genteng sederhana: garis terracotta bertingkat yang memberi tekstur visual.
+  const tileMat=material(0xb65b3e,.82);for(let i=0;i<5;i++){const tile=new THREE.Mesh(new THREE.BoxGeometry(2.5-i*.22,.07,.12),tileMat);tile.position.set(0,2.7+i*.19,-1.2+i*.1);g.add(tile);}
+  const door=new THREE.Mesh(new THREE.PlaneGeometry(.46,.75),new THREE.MeshBasicMaterial({color:0x2c211c}));door.position.set(0,.45,-1.105);g.add(door);
+  for(const xx of[-.72,.72]){const window=new THREE.Mesh(new THREE.PlaneGeometry(.31,.34),new THREE.MeshBasicMaterial({color:0x8ac6d8}));window.position.set(xx,1.95,-1.18);g.add(window);}
+  if(index%2===0)addFlowerBox(g,.72,1.68,-1.28);if(index%3===0)addHangingFlag(g,1.25,2.65,-1.3);
+}
+function addFlowerBox(group,x,y,z){const box=new THREE.Mesh(new THREE.BoxGeometry(.48,.17,.2),wood);box.position.set(x,y,z);group.add(box);for(let i=0;i<4;i++){const flower=new THREE.Mesh(new THREE.SphereGeometry(.055,6,5),new THREE.MeshBasicMaterial({color:i%2?0xff6d7b:0xffdc70}));flower.position.set(x-.14+i*.09,y+.16,z-.03);group.add(flower);}}
+function addHangingFlag(group,x,y,z){const pole=new THREE.Mesh(new THREE.BoxGeometry(.05,.65,.05),timber);pole.position.set(x,y,z);group.add(pole);const flag=new THREE.Mesh(new THREE.PlaneGeometry(.34,.48),new THREE.MeshBasicMaterial({color:0xa92e35,side:THREE.DoubleSide}));flag.position.set(x+.17,y-.04,z-.02);group.add(flag);}
+function createClockTower(scene){
+  const g=new THREE.Group();g.position.set(0,0,-14);scene.add(g);
+  const body=new THREE.Mesh(new THREE.BoxGeometry(3.05,8.4,3.05),darkStone);body.position.y=4.2;body.castShadow=body.receiveShadow=true;g.add(body);
+  const ledge=new THREE.Mesh(new THREE.BoxGeometry(3.38,.28,3.38),stone);ledge.position.y=6.25;g.add(ledge);
+  for(const z of[-1.54,1.54])for(const x of[-1.54,1.54]){const turret=new THREE.Mesh(new THREE.CylinderGeometry(.28,.34,1.0,7),stone);turret.position.set(x,6.8,z);g.add(turret);}
+  const clock=new THREE.Mesh(new THREE.CircleGeometry(.64,20),new THREE.MeshBasicMaterial({color:0xf2e4bd}));clock.position.set(0,6.8,-1.535);g.add(clock);const hand=new THREE.Mesh(new THREE.BoxGeometry(.05,.42,.03),new THREE.MeshBasicMaterial({color:0x2f3845}));hand.position.set(0,6.9,-1.57);hand.rotation.z=-.55;g.add(hand);
+  const spire=new THREE.Mesh(new THREE.ConeGeometry(1.92,3.1,4),roof);spire.position.y=10.0;spire.rotation.y=Math.PI/4;spire.castShadow=true;g.add(spire);
+}
+function createProps(scene){
+  // Bangku kayu, gerobak, tong, pot tanaman dan lampu jalan di sekitar jalan sempit.
+  for(const [x,z] of[[-2.5,3.1],[2.35,-1.6],[-2.6,-5.3]]){const seat=add(scene,new THREE.BoxGeometry(.9,.12,.3),x,.43,z,wood);const back=add(scene,new THREE.BoxGeometry(.9,.42,.08),x,.65,z+.12,wood);for(const dx of[-.34,.34])add(scene,new THREE.BoxGeometry(.07,.43,.07),x+dx,.2,z,wood);}
+  const cart=new THREE.Group();cart.position.set(2.65,.28,3.2);const bed=new THREE.Mesh(new THREE.BoxGeometry(1.2,.28,.85),wood);cart.add(bed);for(const x of[-.48,.48]){const wheel=new THREE.Mesh(new THREE.TorusGeometry(.27,.07,6,12),timber);wheel.position.set(x,-.22,.42);wheel.rotation.x=Math.PI/2;cart.add(wheel);}scene.add(cart);
+  for(const [x,z] of[[-3.1,1.8],[3.05,-4.2],[-3.1,-6.8]]){const pot=add(scene,new THREE.CylinderGeometry(.16,.22,.28,8),x,.14,z,material(0x9a5236,.88));const plant=add(scene,new THREE.SphereGeometry(.18,7,6),x,.37,z,material(0x456f39,.9));}
+}
+function createClouds(scene){const cloudMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.76,depthWrite:false});for(const [x,y,z,s] of[[-10,12,-20,1.4],[5,14,-25,1.8],[14,10,-18,1.15]]){const g=new THREE.Group();for(let i=0;i<5;i++){const puff=new THREE.Mesh(new THREE.SphereGeometry(s*(.45+Math.random()*.25),12,8),cloudMat);puff.position.set(i*s*.35,Math.random()*.3,(Math.random()-.5)*.5);g.add(puff);}g.position.set(x,y,z);scene.add(g);}}
