@@ -8,7 +8,7 @@ export function buildWorld(scene) {
   scene.add(new THREE.HemisphereLight(0xdff2ff,0x31415a,1.65));
   const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
   const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
-  createGround(scene);createCobblestoneStreet(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createClouds(scene);
+  createGround(scene);createCobblestoneStreet(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createClouds(scene);
 }
 const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
@@ -63,4 +63,29 @@ function createProps(scene){
   const cart=new THREE.Group();cart.position.set(2.65,.28,3.2);const bed=new THREE.Mesh(new THREE.BoxGeometry(1.2,.28,.85),wood);cart.add(bed);for(const x of[-.48,.48]){const wheel=new THREE.Mesh(new THREE.TorusGeometry(.27,.07,6,12),timber);wheel.position.set(x,-.22,.42);wheel.rotation.x=Math.PI/2;cart.add(wheel);}scene.add(cart);
   for(const [x,z] of[[-3.1,1.8],[3.05,-4.2],[-3.1,-6.8]]){const pot=add(scene,new THREE.CylinderGeometry(.16,.22,.28,8),x,.14,z,material(0x9a5236,.88));const plant=add(scene,new THREE.SphereGeometry(.18,7,6),x,.37,z,material(0x456f39,.9));}
 }
+function createNature(scene){
+  createGrassBlades(scene);
+  // Pohon berada di pinggir map agar jalan utama tetap terbuka.
+  const trees=[[-13,7,1.3],[-14,0,1.15],[-13,-7,1.45],[-12,-15,1.3],[13,6,1.35],[14,-2,1.5],[13,-9,1.15],[12,-17,1.55],[-7,-21,1.8],[7,-21,1.7]];
+  trees.forEach(([x,z,s])=>createTree(scene,x,z,s));
+  for(let i=0;i<42;i++){const x=(Math.random()>.5?1:-1)*(4.2+Math.random()*10),z=8-Math.random()*34;createRock(scene,x,z,.18+Math.random()*.58);}
+}
+function createGrassBlades(scene){
+  // Rumput halus: satu InstancedMesh untuk ribuan bilah, bukan kotak-kotak individual.
+  const count=1500,blade=new THREE.PlaneGeometry(.055,.52,1,2);blade.translate(0,.26,0);
+  const grass=new THREE.InstancedMesh(blade,new THREE.MeshStandardMaterial({color:0x527e3c,roughness:.95,side:THREE.DoubleSide}),count);
+  const matrix=new THREE.Matrix4(),quat=new THREE.Quaternion(),scale=new THREE.Vector3(),pos=new THREE.Vector3();
+  for(let i=0;i<count;i++){let x,z;do{x=(Math.random()-.5)*58;z=(Math.random()-.5)*58;}while(Math.abs(x)<3.1||Math.abs(z)>28);pos.set(x,terrainHeight(x,z)+.01,z);quat.setFromAxisAngle(new THREE.Vector3(0,1,0),Math.random()*Math.PI);scale.set(.65+Math.random()*.75,.55+Math.random()*.8,1);matrix.compose(pos,quat,scale);grass.setMatrixAt(i,matrix);}
+  grass.instanceMatrix.needsUpdate=true;scene.add(grass);
+}
+function createTree(scene,x,z,s){
+  const g=new THREE.Group();g.position.set(x,terrainHeight(x,z),z);g.scale.setScalar(s);
+  const trunkMat=material(0x59402d,.9),leafA=material(0x315b3d,.86),leafB=material(0x447148,.88);
+  const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.18,.32,2.35,8),trunkMat);trunk.position.y=1.17;trunk.castShadow=true;g.add(trunk);
+  // Cabang dan tiga cluster daun bulat membuat siluet lebih natural dari cone sederhana.
+  for(const side of[-1,1]){const branch=new THREE.Mesh(new THREE.CylinderGeometry(.07,.12,.95,7),trunkMat);branch.position.set(side*.36,1.85,0);branch.rotation.z=side*.82;g.add(branch);}
+  for(const [px,py,pz,r,mat] of [[0,2.65,0,.92,leafA],[-.48,2.48,.12,.68,leafB],[.48,2.45,-.06,.7,leafA],[0,3.18,.06,.63,leafB]]){const leaves=new THREE.Mesh(new THREE.DodecahedronGeometry(r,1),mat);leaves.position.set(px,py,pz);leaves.castShadow=true;g.add(leaves);}
+  scene.add(g);
+}
+function createRock(scene,x,z,size){const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,1),material(0x68706d,.94));rock.position.set(x,terrainHeight(x,z)+size*.28,z);rock.rotation.set(Math.random(),Math.random(),0);rock.scale.set(1.3,.55+Math.random()*.45,.8+Math.random()*.55);rock.castShadow=rock.receiveShadow=true;scene.add(rock);}
 function createClouds(scene){const cloudMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.76,depthWrite:false});for(const [x,y,z,s] of[[-10,12,-20,1.4],[5,14,-25,1.8],[14,10,-18,1.15]]){const g=new THREE.Group();for(let i=0;i<5;i++){const puff=new THREE.Mesh(new THREE.SphereGeometry(s*(.45+Math.random()*.25),12,8),cloudMat);puff.position.set(i*s*.35,Math.random()*.3,(Math.random()-.5)*.5);g.add(puff);}g.position.set(x,y,z);scene.add(g);}}
