@@ -16,13 +16,23 @@ loadVillageModels(scene);
 const player=new Player(scene),monster=new ForestMonster(scene);const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=4.5;controls.maxDistance=16;controls.maxPolarAngle=Math.PI*.46;controls.target.copy(player.group.position).add(new THREE.Vector3(0,1,0));
 const keys={};addEventListener('keydown',e=>{keys[e.code]=true;});addEventListener('keyup',e=>{keys[e.code]=false;});addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);});
 const clock=new THREE.Clock();
-const orbitOffset=new THREE.Vector3(),cameraRay=new THREE.Raycaster(),cameraDirection=new THREE.Vector3();
-function isPartOf(object,root){while(object){if(object===root)return true;object=object.parent;}return false;}
-function preventCameraClipping(target){
-  // Ray dari karakter menuju kamera: bila menyentuh rumah/tower, kamera berhenti sebelum tembok/atap.
-  cameraDirection.copy(camera.position).sub(target);const intendedDistance=cameraDirection.length();
-  if(intendedDistance===0)return;cameraRay.set(target,cameraDirection.normalize());
-  const hit=cameraRay.intersectObjects(scene.children,true).find((item)=>item.distance>.65&&!isPartOf(item.object,player.group)&&!isPartOf(item.object,monster.group));
-  if(hit&&hit.distance<intendedDistance)camera.position.copy(target).addScaledVector(cameraDirection,Math.max(1.2,hit.distance-.35));
+const orbitOffset=new THREE.Vector3();
+const defaultCameraOffset=new THREE.Vector3(7,6.5,11);
+function resetCamera(){
+  const target=player.group.position.clone().add(new THREE.Vector3(0,1,0));
+  controls.target.copy(target);camera.position.copy(target).add(defaultCameraOffset);controls.update();
 }
-function loop(){const dt=Math.min(clock.getDelta(),.05);player.update(dt,keys,camera);monster.update(dt,player);const nextTarget=player.group.position.clone().add(new THREE.Vector3(0,1,0));orbitOffset.copy(camera.position).sub(controls.target);camera.position.lerp(nextTarget.clone().add(orbitOffset),.14);controls.target.lerp(nextTarget,.14);const distance=player.group.position.distanceTo(monster.group.position);document.querySelector('#monster-status').textContent=distance<5?'⚠ Monster hutan memperhatikanmu':'👾 Monster hutan terlihat di kejauhan';document.querySelector('#place').textContent=player.group.position.z<-5?'Tepi sungai':'Desa Medieval Ampera';controls.update();preventCameraClipping(controls.target);renderer.render(scene,camera);requestAnimationFrame(loop);}loop();
+addEventListener('keydown',(event)=>{if(event.code==='KeyR')resetCamera();});
+function loop(){
+  const dt=Math.min(clock.getDelta(),.05);player.update(dt,keys,camera);monster.update(dt,player);
+  const nextTarget=player.group.position.clone().add(new THREE.Vector3(0,1,0));
+  orbitOffset.copy(camera.position).sub(controls.target);
+  // Jika kamera terseret terlalu dekat/aneh, pulihkan offset kamera yang stabil.
+  if(orbitOffset.length()<3||orbitOffset.y<1.5)orbitOffset.copy(defaultCameraOffset);
+  camera.position.lerp(nextTarget.clone().add(orbitOffset),.14);controls.target.lerp(nextTarget,.14);
+  const distance=player.group.position.distanceTo(monster.group.position);
+  document.querySelector('#monster-status').textContent=distance<5?'⚠ Monster hutan memperhatikanmu':'👾 Monster hutan terlihat di kejauhan';
+  document.querySelector('#place').textContent=player.group.position.z<-5?'Tepi sungai':'Desa Medieval Ampera';
+  controls.update();renderer.render(scene,camera);requestAnimationFrame(loop);
+}
+resetCamera();loop();
