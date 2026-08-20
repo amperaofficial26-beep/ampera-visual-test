@@ -60,17 +60,14 @@ function hideProceduralBuildings(scene){
 }
 
 export async function loadVillageModels(scene){
-  // Layout dikurasi: dua baris rumah rapi, tinggi seragam, semuanya menghadap jalan.
-  // Tidak ada lagi kombinasi ukuran acak atau model procedural yang bercampur dengan GLB.
-  // Delapan rumah tiap sisi agar desa lebih penuh, tetapi jalan utama tetap terbuka.
-  const left=[[-8.7,0,10.5,.05],[-8.5,0,7.0,-.04],[-8.7,0,3.4,.03],[-8.5,0,-.7,-.05],[-8.7,0,-4.8,.04],[-8.5,0,-8.9,-.04],[-8.7,0,-13.0,.03],[-8.5,0,-17.0,-.05]];
-  const right=[[8.7,0,10.5,-.05],[8.5,0,7.0,.04],[8.7,0,3.4,-.03],[8.5,0,-.7,.05],[8.7,0,-4.8,-.04],[8.5,0,-8.9,.04],[8.7,0,-13.0,-.03],[8.5,0,-17.0,.05]];
-  const types=['houseA','houseB','houseC','houseA','houseB','houseC','houseA','houseB'];
+  // Tujuh rumah tiap sisi, dengan jarak lima unit agar atap dan dinding GLB tidak bertumpuk.
+  const left=[[-10.5,0,10,.04],[-10.5,0,5,-.03],[-10.5,0,0,.03],[-10.5,0,-5,-.04],[-10.5,0,-10,.03],[-10.5,0,-15,-.03],[-10.5,0,-20,.03]];
+  const right=[[10.5,0,10,-.04],[10.5,0,5,.03],[10.5,0,0,-.03],[10.5,0,-5,.04],[10.5,0,-10,-.03],[10.5,0,-15,.03],[10.5,0,-20,-.03]];
+  const types=['houseA','houseB','houseC','houseA','houseB','houseC','houseA'];
   const jobs=[];
-  // Tinggi dinaikkan sedikit agar rumah kecil tidak kalah besar dari variasi rumah lain.
-  // Model GLB sudah memiliki struktur sendiri; facade tambahan dinonaktifkan agar tidak ada balok kayu melayang.
-  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:6.2,name:`village_house_left_${i}`})));
-  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:6.2,name:`village_house_right_${i}`}));});
+  // Tinggi 5.2 masih besar dibanding player, tetapi aman untuk layout desa yang padat.
+  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.2,name:`village_house_left_${i}`})));
+  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:5.2,name:`village_house_right_${i}`}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
   // Props memakai scale berdasarkan tinggi dunia juga agar proporsinya konsisten.
