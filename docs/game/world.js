@@ -123,8 +123,13 @@ function createCityLanterns(scene){
   const lanterns=[];const poleMat=new THREE.MeshStandardMaterial({color:0x29242a,roughness:.58,metalness:.45});
   const bulbMat=new THREE.MeshBasicMaterial({color:0xffc15d,transparent:true,opacity:.55});
   // Lentera bergantian kiri/kanan sepanjang jalan kota dan dekat area menara.
-  const spots=[];for(let z=11;z>=-29;z-=5){spots.push([-3.4,z]);spots.push([3.4,z]);}
-  spots.push([-6,2],[6,2],[-6,-12],[6,-12]);
+  const spots=[];
+  // Lentera utama sepanjang jalan.
+  for(let z=11;z>=-29;z-=5){spots.push([-3.4,z]);spots.push([3.4,z]);}
+  // Satu lentera dekat setiap rumah utama (di antara fasad rumah dan jalan).
+  for(const z of[10,4,-2,-8,-14,-20]){spots.push([-8.7,z]);spots.push([8.7,z]);}
+  // Lentera tambahan untuk alun-alun dan gedung publik kota.
+  spots.push([-6,2],[6,2],[-6,-12],[6,-12],[-17,2],[17,-1],[-17,-13],[17,-14]);
   for(const [x,z] of spots){
     const y=terrainHeight(x,z);const group=new THREE.Group();group.position.set(x,y,z);
     const pole=new THREE.Mesh(new THREE.CylinderGeometry(.045,.065,2.35,7),poleMat);pole.position.y=1.175;pole.castShadow=true;group.add(pole);
