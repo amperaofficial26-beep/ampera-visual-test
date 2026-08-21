@@ -17,6 +17,6 @@ export class Player {
     const right=new THREE.Vector3().crossVectors(forward,new THREE.Vector3(0,1,0)).normalize();
     const move=new THREE.Vector3();if(keys.KeyW||keys.ArrowUp)move.add(forward);if(keys.KeyS||keys.ArrowDown)move.sub(forward);if(keys.KeyD||keys.ArrowRight)move.add(right);if(keys.KeyA||keys.ArrowLeft)move.sub(right);
     if(move.lengthSq()>0){move.normalize();this.group.position.addScaledVector(move,this.speed*dt);this.group.rotation.y=Math.atan2(move.x,move.z);}
-    this.group.position.x=THREE.MathUtils.clamp(this.group.position.x,-45,45);this.group.position.z=THREE.MathUtils.clamp(this.group.position.z,-43,20);this.group.position.y=terrainHeight(this.group.position.x,this.group.position.z)+.05;
+    this.group.position.x=THREE.MathUtils.clamp(this.group.position.x,-45,45);this.group.position.z=THREE.MathUtils.clamp(this.group.position.z,-43,38);this.group.position.y=terrainHeight(this.group.position.x,this.group.position.z)+.05;
   }
 }
