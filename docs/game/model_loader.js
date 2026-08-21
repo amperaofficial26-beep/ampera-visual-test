@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { terrainHeight } from './terrain.js';
+import { addSecondFloor } from './house_upgrade.js';
 
 // Semua aset di bawah sudah berada di docs/assets/models/ pada repository GitHub.
 const MODELS={
@@ -32,10 +33,10 @@ function fitToHeight(model,targetHeight){
   // Setiap model berdiri tepat di tanah, meskipun origin file GLB berbeda.
   model.position.y-=box.min.y;
 }
-async function place(scene,key,{position,rotationY=0,height=5,name,facadeSide=null}){
+async function place(scene,key,{position,rotationY=0,height=5,name,upgrade=false}){
   try{
     const model=(await sourceModel(key)).clone(true);model.name=name;model.position.fromArray(position);model.rotation.y=rotationY;fitToHeight(model,height);model.position.y+=terrainHeight(position[0],position[2]);scene.add(model);
-    if(facadeSide)upgradeSquareFacade(scene,model,facadeSide);
+    if(upgrade) addSecondFloor(scene,model);
     return model;
   }catch(error){console.warn(`Gagal memuat ${key}: ${MODELS[key]}`,error);return null;}
 }
@@ -66,7 +67,7 @@ export async function loadVillageModels(scene){
   const types=['houseA','houseB','houseC','houseA','houseB','houseC','houseA'];
   const jobs=[];
   // Tinggi 5.2 masih besar dibanding player, tetapi aman untuk layout desa yang padat.
-  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.2,name:`village_house_left_${i}`})));
+  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.2,name:`village_house_left_${i}`,upgrade:i===0})));
   right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:5.2,name:`village_house_right_${i}`}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
