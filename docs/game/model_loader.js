@@ -12,6 +12,8 @@ const MODELS={
   blacksmith:'assets/models/Blacksmith.glb',
   sawmill:'assets/models/Fantasy%20Sawmill.glb',
   stable:'assets/models/Fantasy%20Stable.glb',
+  barracks:'assets/models/Fantasy%20Barracks.glb',
+  mill:'assets/models/Mill.glb',
   tower:'assets/models/Bell%20Tower.glb',
   barrel:'assets/models/Barrel.glb',
   crate:'assets/models/Crate.glb',
@@ -93,7 +95,12 @@ export async function loadVillageModels(scene){
   const backRow=[[-18,-31,.08],[-9,-31,-.05],[9,-31,.05],[18,-31,-.08]];
   backRow.forEach(([x,z,rot],i)=>jobs.push(place(scene,types[i%types.length],{position:[x,0,z],rotationY:rot,height:4.9,name:`outer_house_back_${i}`})));
 
+  // Landmark utama dan gedung tinggi kota.
   jobs.push(place(scene,'tower',{position:[0,0,-34],rotationY:0,height:12.5,name:'village_bell_tower'}));
+  jobs.push(place(scene,'tower',{position:[-39,0,13],rotationY:.1,height:9.5,name:'city_watchtower_west'}));
+  jobs.push(place(scene,'tower',{position:[39,0,13],rotationY:-.1,height:9.5,name:'city_watchtower_east'}));
+  jobs.push(place(scene,'mill',{position:[25,0,-25],rotationY:.25,height:10.5,name:'city_mill'}));
+  jobs.push(place(scene,'barracks',{position:[-25,0,-25],rotationY:-.2,height:8.5,name:'city_barracks'}));
 
   // Bangunan publik di pinggir street: membuat desa terasa ramai tanpa menutup jalur utama.
   jobs.push(place(scene,'inn',{position:[-21,0,2],rotationY:-Math.PI/2,height:6.8,name:'village_inn'}));
