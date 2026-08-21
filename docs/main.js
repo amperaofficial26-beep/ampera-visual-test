@@ -4,6 +4,7 @@ import { buildWorld } from './game/world.js';
 import { Player } from './game/player.js';
 import { ForestMonster } from './game/monster.js';
 import { loadVillageModels } from './game/model_loader.js';
+import { addTowerDefensePreview } from './game/tower_defense_preview.js';
 
 const canvas=document.querySelector('#game');
 const scene=new THREE.Scene();
@@ -11,6 +12,8 @@ const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,100);camera.position.set(7,6.5,11);
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;renderer.outputColorSpace=THREE.SRGBColorSpace;
 buildWorld(scene);
+// Preview mentahan tower defense diletakkan di luar gerbang utara kota.
+addTowerDefensePreview(scene);
 // Model GLB lokal akan mengganti fallback procedural secara otomatis bila sudah di-upload.
 loadVillageModels(scene);
 const player=new Player(scene),monster=new ForestMonster(scene);const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=4.5;controls.maxDistance=16;controls.maxPolarAngle=Math.PI*.46;controls.target.copy(player.group.position).add(new THREE.Vector3(0,1,0));
