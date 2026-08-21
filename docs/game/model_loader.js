@@ -89,23 +89,31 @@ export async function loadVillageModels(scene){
   jobs.push(place(scene,'sawmill',{position:[-21,0,-13],rotationY:-Math.PI/2,height:5.6,name:'village_sawmill'}));
   jobs.push(place(scene,'stable',{position:[21,0,-14],rotationY:Math.PI/2,height:5.5,name:'village_stable'}));
 
-  // Props memakai scale berdasarkan tinggi dunia juga agar proporsinya konsisten.
-  jobs.push(place(scene,'barrel',{position:[2.7,0,2.4],rotationY:.2,height:.82,name:'village_barrel_a'}));
-  jobs.push(place(scene,'barrel',{position:[3.25,0,2.35],rotationY:-.35,height:.7,name:'village_barrel_b'}));
-  jobs.push(place(scene,'crate',{position:[2.9,0,1.65],rotationY:.2,height:.7,name:'village_crate'}));
-  jobs.push(place(scene,'package',{position:[2.2,0,1.85],rotationY:.4,height:.42,name:'village_bag'}));
-  jobs.push(place(scene,'cart',{position:[3.3,0,4.2],rotationY:.1,height:1.05,name:'village_cart'}));
-  jobs.push(place(scene,'bench',{position:[-3.1,0,3.2],rotationY:.08,height:.78,name:'village_bench'}));
-  jobs.push(place(scene,'market',{position:[-3.6,0,-2.2],rotationY:.2,height:2.8,name:'village_market'}));
-  jobs.push(place(scene,'rocks',{position:[-5.3,0,-6.5],rotationY:.3,height:.7,name:'village_rocks_a'}));
-  jobs.push(place(scene,'rocks',{position:[5.4,0,-10.2],rotationY:-.4,height:.55,name:'village_rocks_b'}));
-  // Detail alun-alun: pasar, sumur, pagar, jerami, tas, dan api unggun.
-  jobs.push(place(scene,'well',{position:[0,0,1.8],rotationY:0,height:1.1,name:'village_well'}));
-  jobs.push(place(scene,'market2',{position:[-3.8,0,.2],rotationY:.25,height:2.9,name:'village_market_b'}));
-  jobs.push(place(scene,'bonfire',{position:[3.9,0,.4],rotationY:0,height:.65,name:'village_bonfire'}));
-  jobs.push(place(scene,'hay',{position:[14.2,0,-12.2],rotationY:.3,height:.7,name:'village_hay'}));
-  jobs.push(place(scene,'bags',{position:[-14.2,0,-11.7],rotationY:-.2,height:.7,name:'village_bags'}));
-  for(let i=0;i<5;i++)jobs.push(place(scene,'fence',{position:[-5.8+i*1.05,0,7.9],rotationY:0,height:.75,name:`village_fence_${i}`}));
+  // Props ditempatkan di tepi jalan dan depan bangunan, bukan di tengah cobblestone.
+  // Area sisi kiri depan: sumur kecil dan pasar.
+  jobs.push(place(scene,'well',{position:[-5.6,0,1.8],rotationY:0,height:1.65,name:'village_well'}));
+  jobs.push(place(scene,'market',{position:[-6.7,0,-1.0],rotationY:.2,height:3.65,name:'village_market_a'}));
+  jobs.push(place(scene,'market2',{position:[-6.1,0,4.7],rotationY:-.15,height:3.45,name:'village_market_b'}));
+  jobs.push(place(scene,'bench',{position:[-4.7,0,3.4],rotationY:.08,height:1.05,name:'village_bench_a'}));
+  jobs.push(place(scene,'bench',{position:[4.9,0,-6.8],rotationY:Math.PI,height:1.0,name:'village_bench_b'}));
+
+  // Area sisi kanan: gerobak dan barang dagangan, semua berada di bahu jalan.
+  jobs.push(place(scene,'cart',{position:[6.2,0,4.5],rotationY:-.18,height:1.55,name:'village_cart'}));
+  jobs.push(place(scene,'barrel',{position:[5.3,0,3.6],rotationY:.2,height:1.15,name:'village_barrel_a'}));
+  jobs.push(place(scene,'barrel',{position:[5.9,0,3.45],rotationY:-.35,height:1.0,name:'village_barrel_b'}));
+  jobs.push(place(scene,'barrel',{position:[6.4,0,3.8],rotationY:.1,height:.92,name:'village_barrel_c'}));
+  jobs.push(place(scene,'crate',{position:[5.55,0,2.55],rotationY:.2,height:1.05,name:'village_crate_a'}));
+  jobs.push(place(scene,'crate',{position:[6.5,0,2.6],rotationY:-.1,height:.9,name:'village_crate_b'}));
+  jobs.push(place(scene,'package',{position:[5.0,0,2.35],rotationY:.4,height:.65,name:'village_bag'}));
+
+  // Area kerja di dekat stable/sawmill.
+  jobs.push(place(scene,'hay',{position:[17.5,0,-12.2],rotationY:.3,height:1.05,name:'village_hay_a'}));
+  jobs.push(place(scene,'hay',{position:[18.7,0,-11.8],rotationY:-.2,height:.9,name:'village_hay_b'}));
+  jobs.push(place(scene,'bags',{position:[-17.5,0,-11.7],rotationY:-.2,height:1.0,name:'village_bags'}));
+  jobs.push(place(scene,'bonfire',{position:[-5.6,0,-4.2],rotationY:0,height:1.0,name:'village_bonfire'}));
+  jobs.push(place(scene,'rocks',{position:[-7.3,0,-7.5],rotationY:.3,height:1.0,name:'village_rocks_a'}));
+  jobs.push(place(scene,'rocks',{position:[7.2,0,-10.2],rotationY:-.4,height:.85,name:'village_rocks_b'}));
+  for(let i=0;i<6;i++)jobs.push(place(scene,'fence',{position:[-8.3+i*1.1,0,7.9],rotationY:0,height:1.0,name:`village_fence_${i}`}));
 
   const loaded=await Promise.all(jobs);
   if(loaded.some(Boolean))hideProceduralBuildings(scene);
