@@ -71,22 +71,23 @@ function hideProceduralBuildings(scene){
 }
 
 export async function loadVillageModels(scene){
-  // Tujuh rumah tiap sisi, dengan jarak lima unit agar atap dan dinding GLB tidak bertumpuk.
-  const left=[[-10.5,0,10,.04],[-10.5,0,5,-.03],[-10.5,0,0,.03],[-10.5,0,-5,-.04],[-10.5,0,-10,.03],[-10.5,0,-15,-.03],[-10.5,0,-20,.03]];
-  const right=[[10.5,0,10,-.04],[10.5,0,5,.03],[10.5,0,0,-.03],[10.5,0,-5,.04],[10.5,0,-10,-.03],[10.5,0,-15,.03],[10.5,0,-20,-.03]];
-  const types=['houseA','houseB','houseC','houseA','houseB','houseC','houseA'];
+  // Enam rumah tiap sisi dengan jarak 6 unit: cukup jauh agar roof, balkon, dan shadow tidak saling menembus.
+  const left=[[-12,0,10,.04],[-12,0,4,-.03],[-12,0,-2,.03],[-12,0,-8,-.04],[-12,0,-14,.03],[-12,0,-20,-.03]];
+  const right=[[12,0,10,-.04],[12,0,4,.03],[12,0,-2,-.03],[12,0,-8,.04],[12,0,-14,-.03],[12,0,-20,.03]];
+  const types=['houseA','houseB','houseC','houseA','houseB','houseC'];
   const jobs=[];
   // Tinggi 5.2 masih besar dibanding player, tetapi aman untuk layout desa yang padat.
   // Semua variasi houseA di sisi kiri (3 rumah) mendapat lantai kedua agar tampak sebagai bangunan besar satu gaya.
-  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.2,name:`village_house_left_${i}`,upgrade:types[i]==='houseA'})));
-  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:5.2,name:`village_house_right_${i}`}));});
+  // HouseA adalah bangunan kotak dua lantai; rumah variasi lain dibesarkan agar terlihat sebagai rumah utama desa.
+  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:types[i]==='houseA'?5.2:6.3,name:`village_house_left_${i}`,upgrade:types[i]==='houseA'})));
+  right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:key==='houseA'?5.2:6.3,name:`village_house_right_${i}`}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
   // Bangunan publik di pinggir street: membuat desa terasa ramai tanpa menutup jalur utama.
-  jobs.push(place(scene,'inn',{position:[-16,0,2],rotationY:-Math.PI/2,height:6.8,name:'village_inn'}));
-  jobs.push(place(scene,'blacksmith',{position:[16,0,-1],rotationY:Math.PI/2,height:6.1,name:'village_blacksmith'}));
-  jobs.push(place(scene,'sawmill',{position:[-16,0,-12],rotationY:-Math.PI/2,height:5.6,name:'village_sawmill'}));
-  jobs.push(place(scene,'stable',{position:[16,0,-13],rotationY:Math.PI/2,height:5.5,name:'village_stable'}));
+  jobs.push(place(scene,'inn',{position:[-21,0,2],rotationY:-Math.PI/2,height:6.8,name:'village_inn'}));
+  jobs.push(place(scene,'blacksmith',{position:[21,0,-1],rotationY:Math.PI/2,height:6.1,name:'village_blacksmith'}));
+  jobs.push(place(scene,'sawmill',{position:[-21,0,-13],rotationY:-Math.PI/2,height:5.6,name:'village_sawmill'}));
+  jobs.push(place(scene,'stable',{position:[21,0,-14],rotationY:Math.PI/2,height:5.5,name:'village_stable'}));
 
   // Props memakai scale berdasarkan tinggi dunia juga agar proporsinya konsisten.
   jobs.push(place(scene,'barrel',{position:[2.7,0,2.4],rotationY:.2,height:.82,name:'village_barrel_a'}));
