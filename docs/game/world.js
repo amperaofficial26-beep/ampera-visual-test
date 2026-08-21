@@ -9,8 +9,8 @@ export function buildWorld(scene) {
   const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
   const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
   createGround(scene);createCobblestoneStreet(scene);createTownPaths(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createMountains(scene);
-  const clouds=createClouds(scene),stars=createStars(scene);
-  return createDayNightSystem(scene,skyColor,sun,hemisphere,skyFill,clouds,stars);
+  const clouds=createClouds(scene),stars=createStars(scene),lanterns=createCityLanterns(scene);
+  return createDayNightSystem(scene,skyColor,sun,hemisphere,skyFill,clouds,stars,lanterns);
 }
 const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
@@ -119,7 +119,24 @@ function createStars(scene){
   geo.setAttribute('position',new THREE.Float32BufferAttribute(points,3));const mat=new THREE.PointsMaterial({color:0xd8eaff,size:.13,transparent:true,opacity:0,depthWrite:false});
   const stars=new THREE.Points(geo,mat);scene.add(stars);return stars;
 }
-function createDayNightSystem(scene,skyColor,sun,hemisphere,skyFill,clouds,stars){
+function createCityLanterns(scene){
+  const lanterns=[];const poleMat=new THREE.MeshStandardMaterial({color:0x29242a,roughness:.58,metalness:.45});
+  const bulbMat=new THREE.MeshBasicMaterial({color:0xffc15d,transparent:true,opacity:.55});
+  // Lentera bergantian kiri/kanan sepanjang jalan kota dan dekat area menara.
+  const spots=[];for(let z=11;z>=-29;z-=5){spots.push([-3.4,z]);spots.push([3.4,z]);}
+  spots.push([-6,2],[6,2],[-6,-12],[6,-12]);
+  for(const [x,z] of spots){
+    const y=terrainHeight(x,z);const group=new THREE.Group();group.position.set(x,y,z);
+    const pole=new THREE.Mesh(new THREE.CylinderGeometry(.045,.065,2.35,7),poleMat);pole.position.y=1.175;pole.castShadow=true;group.add(pole);
+    const arm=new THREE.Mesh(new THREE.CylinderGeometry(.035,.045,.48,6),poleMat);arm.position.set(.18,2.13,0);arm.rotation.z=Math.PI/2;group.add(arm);
+    const frame=new THREE.Mesh(new THREE.BoxGeometry(.32,.43,.32),poleMat);frame.position.set(.38,1.95,0);group.add(frame);
+    const bulb=new THREE.Mesh(new THREE.SphereGeometry(.13,10,8),bulbMat.clone());bulb.position.set(.38,1.95,0);group.add(bulb);
+    const light=new THREE.PointLight(0xffa84d,.08,8,2);light.position.set(.38,1.95,0);light.castShadow=false;group.add(light);
+    scene.add(group);lanterns.push({light,bulb});
+  }
+  return lanterns;
+}
+function createDayNightSystem(scene,skyColor,sun,hemisphere,skyFill,clouds,stars,lanterns){
   const morning=new THREE.Color(0xf0a46c),day=new THREE.Color(0x73b5df),sunset=new THREE.Color(0x8e5b91),night=new THREE.Color(0x071226);
   const dayFog=new THREE.Color(0x9bc9e2),nightFog=new THREE.Color(0x101c38);
   let elapsed=24; // mulai sore/pagi hangat, bukan malam gelap.
@@ -131,6 +148,8 @@ function createDayNightSystem(scene,skyColor,sun,hemisphere,skyFill,clouds,stars
     skyColor.copy(color);scene.fog.color.copy(dayFog).lerp(nightFog,nightMix);hemisphere.intensity=.3+daylight*1.4;skyFill.intensity=.12+daylight*.65;
     clouds.visible=sunHeight>-.18;clouds.children.forEach((cloud)=>cloud.children.forEach((puff)=>{puff.material.opacity=.12+daylight*.64;}));
     stars.material.opacity=THREE.MathUtils.clamp((-sunHeight-.02)*1.5,0,.95);
+    // Lentera otomatis terang saat sore/malam dan hampir mati saat siang.
+    lanterns.forEach(({light,bulb})=>{light.intensity=.06+nightMix*2.45;bulb.material.opacity=.35+nightMix*.65;});
     sun.color.copy(sunHeight>.15?new THREE.Color(0xffe0ad):new THREE.Color(0xff8a65));
   },getLabel(){const phase=(elapsed%180)/180;if(phase<.2)return '🌅 Pagi';if(phase<.48)return '☀️ Siang';if(phase<.7)return '🌇 Sore';return '🌙 Malam';}};
 }
