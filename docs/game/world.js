@@ -8,7 +8,7 @@ export function buildWorld(scene) {
   scene.add(new THREE.HemisphereLight(0xdff2ff,0x31415a,1.65));
   const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
   const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
-  createGround(scene);createCobblestoneStreet(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createMountains(scene);createClouds(scene);
+  createGround(scene);createCobblestoneStreet(scene);createTownPaths(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createMountains(scene);createClouds(scene);
 }
 const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
@@ -24,6 +24,18 @@ function createCobblestoneStreet(scene){
   const cobbles=new THREE.Group();const variants=[material(0x77736d,.95),material(0x8b8378,.95),material(0x625f5c,.95),material(0x9a8d7b,.95)];
   for(let row=0;row<96;row++){const z=14-row*.57;for(let col=-4;col<=4;col++){if(Math.random()<.11)continue;const width=.36+Math.random()*.18,depth=.32+Math.random()*.15;const rock=new THREE.Mesh(new THREE.BoxGeometry(width,.07+Math.random()*.035,depth),variants[Math.floor(Math.random()*variants.length)]);rock.position.set(col*.5+(Math.random()-.5)*.08,terrainHeight(col*.5,z)+.04,z+(Math.random()-.5)*.07);rock.rotation.y=(Math.random()-.5)*.15;rock.castShadow=rock.receiveShadow=true;cobbles.add(rock);if(Math.random()<.14){const grass=new THREE.Mesh(new THREE.PlaneGeometry(.1,.18),moss);grass.rotation.x=-Math.PI/2;grass.position.set(rock.position.x+.18,terrainHeight(rock.position.x+.18,rock.position.z+.2)+.08,rock.position.z+.2);cobbles.add(grass);}}
   }scene.add(cobbles);
+}
+function createTownPaths(scene){
+  // Dua jalan melintang menghubungkan distrik luar dengan jalan utama kota.
+  const mat=material(0x847a6d,.94);
+  for(const z of[5,-12]){
+    for(let x=-38;x<=38;x+=.62){
+      if(Math.random()<.09)continue;
+      const slab=new THREE.Mesh(new THREE.BoxGeometry(.48,.07,2.35),mat);
+      slab.position.set(x,terrainHeight(x,z)+.035,z+(Math.random()-.5)*.16);
+      slab.rotation.y=(Math.random()-.5)*.1;slab.receiveShadow=true;scene.add(slab);
+    }
+  }
 }
 function createStreetBuildings(scene){
   const left=[[-4.8,5.3,.12,1.15],[-4.65,1.2,-.08,1.03],[-4.5,-2.9,.08,1.22],[-4.35,-7.1,-.1,.95]];
