@@ -4,13 +4,12 @@ import { terrainHeight } from './terrain.js';
 
 // Versi Three.js dari brief medieval village. Pencahayaan/shadow/PBR ringan dibuat untuk browser.
 export function buildWorld(scene) {
-  const skyColor=new THREE.Color(0x73b5df);scene.background=skyColor;scene.fog=new THREE.Fog(0x9bc9e2,45,115);
-  const hemisphere=new THREE.HemisphereLight(0xdff2ff,0x31415a,1.65);scene.add(hemisphere);
-  const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
-  const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
-  createGround(scene);createCobblestoneStreet(scene);createTownPaths(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createMountains(scene);
-  const clouds=createClouds(scene),stars=createStars(scene),lanterns=createCityLanterns(scene);
-  return createDayNightSystem(scene,skyColor,sun,hemisphere,skyFill,clouds,stars,lanterns);
+  // Mode permanen SIANG: lebih ringan daripada sistem siklus malam + puluhan PointLight.
+  scene.background=new THREE.Color(0x75bce8);scene.fog=new THREE.Fog(0xb8d8e8,58,130);
+  scene.add(new THREE.HemisphereLight(0xe7f6ff,0x536e47,2.05));
+  const sun=new THREE.DirectionalLight(0xffe5bc,4.7);sun.position.set(-28,38,18);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-35;sun.shadow.camera.right=35;sun.shadow.camera.top=35;sun.shadow.camera.bottom=-35;sun.shadow.bias=-.00015;sun.shadow.normalBias=.025;sun.shadow.radius=4;scene.add(sun);
+  const skyFill=new THREE.DirectionalLight(0xaed6ff,.9);skyFill.position.set(22,18,-24);scene.add(skyFill);
+  createGround(scene);createCobblestoneStreet(scene);createTownPaths(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createMountains(scene);createSunDisc(scene);createClouds(scene);
 }
 const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
@@ -110,9 +109,12 @@ function createMountains(scene){
   const spots=[[-43,-30,10],[-45,-8,13],[-44,15,11],[-40,35,14],[43,-33,12],[45,-5,15],[43,19,11],[38,38,13],[-20,-45,16],[15,-45,15]];
   for(const [x,z,height] of spots){const peak=new THREE.Mesh(new THREE.ConeGeometry(height*.52,height,7),mountainMat[Math.floor(Math.random()*mountainMat.length)]);peak.position.set(x,terrainHeight(x,z)+height*.43,z);peak.rotation.y=Math.random()*Math.PI;peak.receiveShadow=true;scene.add(peak);const foothill=new THREE.Mesh(new THREE.DodecahedronGeometry(height*.32,1),mountainMat[2]);foothill.position.set(x+height*.26,terrainHeight(x+height*.26,z+height*.12)+height*.12,z+height*.12);foothill.scale.y=.55;scene.add(foothill);}
 }
+function createSunDisc(scene){
+  const sun=new THREE.Mesh(new THREE.SphereGeometry(2.1,20,14),new THREE.MeshBasicMaterial({color:0xfff0b5,fog:false}));sun.position.set(-42,30,-55);scene.add(sun);
+}
 function createClouds(scene){
-  const clouds=new THREE.Group(),cloudMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.76,depthWrite:false});
-  for(const [x,y,z,s] of[[-10,12,-20,1.4],[5,14,-25,1.8],[14,10,-18,1.15],[-24,16,-40,2.2]]){const g=new THREE.Group();for(let i=0;i<5;i++){const puff=new THREE.Mesh(new THREE.SphereGeometry(s*(.45+Math.random()*.25),12,8),cloudMat);puff.position.set(i*s*.35,Math.random()*.3,(Math.random()-.5)*.5);g.add(puff);}g.position.set(x,y,z);clouds.add(g);}scene.add(clouds);return clouds;
+  const clouds=new THREE.Group(),cloudMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.82,depthWrite:false});
+  for(const [x,y,z,s] of[[-10,12,-20,1.4],[5,14,-25,1.8],[14,10,-18,1.15],[-24,16,-40,2.2],[28,18,-44,2.5],[-38,11,-25,1.7]]){const g=new THREE.Group();for(let i=0;i<5;i++){const puff=new THREE.Mesh(new THREE.SphereGeometry(s*(.45+Math.random()*.25),12,8),cloudMat);puff.position.set(i*s*.35,Math.random()*.3,(Math.random()-.5)*.5);g.add(puff);}g.position.set(x,y,z);clouds.add(g);}scene.add(clouds);return clouds;
 }
 function createStars(scene){
   const geo=new THREE.BufferGeometry(),points=[];for(let i=0;i<500;i++)points.push((Math.random()-.5)*150,Math.random()*55+8,(Math.random()-.5)*150);
