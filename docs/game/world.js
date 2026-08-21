@@ -8,7 +8,7 @@ export function buildWorld(scene) {
   scene.add(new THREE.HemisphereLight(0xdff2ff,0x31415a,1.65));
   const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
   const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
-  createGround(scene);createCobblestoneStreet(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createClouds(scene);
+  createGround(scene);createCobblestoneStreet(scene);createStreetBuildings(scene);createClockTower(scene);createProps(scene);createNature(scene);createMountains(scene);createClouds(scene);
 }
 const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness});
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
@@ -66,9 +66,11 @@ function createProps(scene){
 function createNature(scene){
   createGrassBlades(scene);
   // Pohon berada di pinggir map agar jalan utama tetap terbuka.
-  const trees=[[-13,7,1.3],[-14,0,1.15],[-13,-7,1.45],[-12,-15,1.3],[13,6,1.35],[14,-2,1.5],[13,-9,1.15],[12,-17,1.55],[-7,-21,1.8],[7,-21,1.7]];
+  const trees=[[-15,7,1.3],[-16,0,1.15],[-15,-7,1.45],[-14,-15,1.3],[15,6,1.35],[16,-2,1.5],[15,-9,1.15],[14,-17,1.55],[-7,-25,1.8],[7,-25,1.7]];
   trees.forEach(([x,z,s])=>createTree(scene,x,z,s));
-  for(let i=0;i<42;i++){const x=(Math.random()>.5?1:-1)*(4.2+Math.random()*10),z=8-Math.random()*34;createRock(scene,x,z,.18+Math.random()*.58);}
+  // Hutan pinggir map: pohon jauh lebih banyak, tetapi dijauhkan dari jalan dan bangunan.
+  for(let i=0;i<42;i++){let x,z;do{x=(Math.random()>.5?1:-1)*(20+Math.random()*25);z=(Math.random()-.5)*86;}while(z>12&&z<22);createTree(scene,x,z,.75+Math.random()*1.05);}
+  for(let i=0;i<68;i++){const x=(Math.random()>.5?1:-1)*(4.2+Math.random()*34),z=14-Math.random()*55;createRock(scene,x,z,.18+Math.random()*.58);}
 }
 function createGrassBlades(scene){
   // Rumput halus: satu InstancedMesh untuk ribuan bilah, bukan kotak-kotak individual.
@@ -88,4 +90,10 @@ function createTree(scene,x,z,s){
   scene.add(g);
 }
 function createRock(scene,x,z,size){const rock=new THREE.Mesh(new THREE.DodecahedronGeometry(size,1),material(0x68706d,.94));rock.position.set(x,terrainHeight(x,z)+size*.28,z);rock.rotation.set(Math.random(),Math.random(),0);rock.scale.set(1.3,.55+Math.random()*.45,.8+Math.random()*.55);rock.castShadow=rock.receiveShadow=true;scene.add(rock);}
+function createMountains(scene){
+  // Pegunungan low-poly di tepi map: dibuat tanpa shadow supaya tetap ringan di browser.
+  const mountainMat=[material(0x536a63,.94),material(0x64766b,.96),material(0x3f564f,.97)];
+  const spots=[[-43,-30,10],[-45,-8,13],[-44,15,11],[-40,35,14],[43,-33,12],[45,-5,15],[43,19,11],[38,38,13],[-20,-45,16],[15,-45,15]];
+  for(const [x,z,height] of spots){const peak=new THREE.Mesh(new THREE.ConeGeometry(height*.52,height,7),mountainMat[Math.floor(Math.random()*mountainMat.length)]);peak.position.set(x,terrainHeight(x,z)+height*.43,z);peak.rotation.y=Math.random()*Math.PI;peak.receiveShadow=true;scene.add(peak);const foothill=new THREE.Mesh(new THREE.DodecahedronGeometry(height*.32,1),mountainMat[2]);foothill.position.set(x+height*.26,terrainHeight(x+height*.26,z+height*.12)+height*.12,z+height*.12);foothill.scale.y=.55;scene.add(foothill);}
+}
 function createClouds(scene){const cloudMat=new THREE.MeshBasicMaterial({color:0xffffff,transparent:true,opacity:.76,depthWrite:false});for(const [x,y,z,s] of[[-10,12,-20,1.4],[5,14,-25,1.8],[14,10,-18,1.15]]){const g=new THREE.Group();for(let i=0;i<5;i++){const puff=new THREE.Mesh(new THREE.SphereGeometry(s*(.45+Math.random()*.25),12,8),cloudMat);puff.position.set(i*s*.35,Math.random()*.3,(Math.random()-.5)*.5);g.add(puff);}g.position.set(x,y,z);scene.add(g);}}
