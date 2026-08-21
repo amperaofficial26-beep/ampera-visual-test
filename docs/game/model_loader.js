@@ -81,6 +81,18 @@ export async function loadVillageModels(scene){
   // HouseA adalah bangunan kotak dua lantai; rumah variasi lain dibesarkan agar terlihat sebagai rumah utama desa.
   left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:types[i]==='houseA'?5.2:6.3,name:`village_house_left_${i}`,upgrade:types[i]==='houseA'})));
   right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:key==='houseA'?5.2:6.3,name:`village_house_right_${i}`}));});
+
+  // Distrik luar kota: bangunan lebih kecil, jaraknya longgar, mengisi pinggir map tanpa menutup jalan pusat.
+  const outerZ=[13,7,1,-5,-11,-17,-23];
+  outerZ.forEach((z,i)=>{
+    const leftKey=types[(i+1)%types.length],rightKey=types[(i+2)%types.length];
+    jobs.push(place(scene,leftKey,{position:[-30,0,z],rotationY:-Math.PI/2+.06,height:4.75,name:`outer_house_left_${i}`}));
+    jobs.push(place(scene,rightKey,{position:[30,0,z],rotationY:Math.PI/2-.06,height:4.75,name:`outer_house_right_${i}`}));
+  });
+  // Bangunan belakang membentuk gerbang kota menuju jalur menara.
+  const backRow=[[-18,-31,.08],[-9,-31,-.05],[9,-31,.05],[18,-31,-.08]];
+  backRow.forEach(([x,z,rot],i)=>jobs.push(place(scene,types[i%types.length],{position:[x,0,z],rotationY:rot,height:4.9,name:`outer_house_back_${i}`})));
+
   jobs.push(place(scene,'tower',{position:[0,0,-34],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
   // Bangunan publik di pinggir street: membuat desa terasa ramai tanpa menutup jalur utama.
