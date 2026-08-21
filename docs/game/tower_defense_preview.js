@@ -21,7 +21,8 @@ export function addTowerDefensePreview(scene){
   const signLight=new THREE.PointLight(0x9ecfff,1.2,5);signLight.position.set(0,2,2.4);tower.add(signLight);
 }
 function addFloor(tower,index,weapon,stone,dark){
-  const y=.78+index*1.03,group=new THREE.Group();group.position.y=y;
+  // Jarak 1.7 unit memberi ruang visual di antara lantai sehingga senjata tiap level terlihat jelas.
+  const y=.78+index*1.7,group=new THREE.Group();group.position.y=y;
   const width=2.08-index*.11;
   const body=new THREE.Mesh(new THREE.BoxGeometry(width,.83,width),stone);body.castShadow=body.receiveShadow=true;group.add(body);
   const rim=new THREE.Mesh(new THREE.BoxGeometry(width+.16,.11,width+.16),dark);rim.position.y=.42;group.add(rim);
