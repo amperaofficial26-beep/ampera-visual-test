@@ -67,7 +67,8 @@ export async function loadVillageModels(scene){
   const types=['houseA','houseB','houseC','houseA','houseB','houseC','houseA'];
   const jobs=[];
   // Tinggi 5.2 masih besar dibanding player, tetapi aman untuk layout desa yang padat.
-  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.2,name:`village_house_left_${i}`,upgrade:i===0})));
+  // Semua variasi houseA di sisi kiri (3 rumah) mendapat lantai kedua agar tampak sebagai bangunan besar satu gaya.
+  left.forEach((item,i)=>jobs.push(place(scene,types[i],{position:item.slice(0,3),rotationY:-Math.PI/2+item[3],height:5.2,name:`village_house_left_${i}`,upgrade:types[i]==='houseA'})));
   right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:5.2,name:`village_house_right_${i}`}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
