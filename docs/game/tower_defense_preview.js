@@ -1,41 +1,46 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { terrainHeight } from './terrain.js';
 
-// Preview statis tower defense lima lantai; belum memiliki sistem battle/upgrade.
-export function addTowerDefensePreview(scene){
-  const x=0,z=28,baseY=terrainHeight(x,z);
-  const tower=new THREE.Group();tower.name='tower_defense_preview';tower.position.set(x,baseY,z);scene.add(tower);
-  const stone=new THREE.MeshStandardMaterial({color:0x536071,roughness:.72,metalness:.12});
-  const dark=new THREE.MeshStandardMaterial({color:0x303846,roughness:.7,metalness:.2});
-  const base=new THREE.Mesh(new THREE.CylinderGeometry(2.4,2.85,.62,10),stone);base.position.y=.31;base.castShadow=base.receiveShadow=true;tower.add(base);
-  const weapons=[
-    {key:'CANNON',color:0xff774e},
-    {key:'TESLA',color:0x65cfff},
-    {key:'FREEZE',color:0x83f6ff},
-    {key:'ROCKET',color:0xffc85b},
-    {key:'LASER',color:0xd68bff},
-  ];
-  weapons.forEach((weapon,index)=>addFloor(tower,index,weapon,stone,dark));
-  // Batu tanda agar pemain dapat menemukan preview di luar gerbang desa.
-  const sign=new THREE.Mesh(new THREE.BoxGeometry(3.2,.8,.18),new THREE.MeshStandardMaterial({color:0x392f2a,roughness:.82}));sign.position.set(0,1.5,2.8);tower.add(sign);
-  const signLight=new THREE.PointLight(0x9ecfff,1.2,5);signLight.position.set(0,2,2.4);tower.add(signLight);
+// Tower defense preview memakai model GLB Ultimate Fantasy RTS yang sudah di-upload user.
+const FLOOR_MODELS=[
+  {name:'CANNON', file:'assets/models/tower/Archery%20Towers.glb', color:0xff774e},
+  {name:'TESLA', file:'assets/models/tower/Temple.glb', color:0x65cfff},
+  {name:'FREEZE', file:'assets/models/tower/Watch%20Tower.glb', color:0x83f6ff},
+  {name:'ROCKET', file:'assets/models/tower/Fortress.glb', color:0xffc85b},
+  {name:'LASER', file:'assets/models/tower/Castle.glb', color:0xd68bff},
+];
+const loader=new GLTFLoader();
+
+export async function addTowerDefensePreview(scene){
+  const x=0,z=28,baseY=terrainHeight(x,z),tower=new THREE.Group();tower.name='tower_defense_preview';tower.position.set(x,baseY,z);scene.add(tower);
+  const stone=new THREE.MeshStandardMaterial({color:0x526174,roughness:.72,metalness:.12});
+  const foundation=new THREE.Mesh(new THREE.CylinderGeometry(3.1,3.65,.7,10),stone);foundation.position.y=.35;foundation.castShadow=foundation.receiveShadow=true;tower.add(foundation);
+  let nextY=.74;
+  // Load berurutan agar preview tidak membuat browser berat saat semua GLB diparse sekaligus.
+  for(let index=0;index<FLOOR_MODELS.length;index++){
+    const config=FLOOR_MODELS[index];
+    try{
+      const gltf=await loader.loadAsync(config.file);const floor=new THREE.Group();floor.name=`tower_floor_${config.name}`;tower.add(floor);
+      const model=gltf.scene;model.traverse((node)=>{if(node.isMesh){node.castShadow=true;node.receiveShadow=true;}});floor.add(model);
+      const height=fitModel(model,2.45,1.75);floor.position.y=nextY;addFloorMarker(floor,config,index,height);nextY+=height+1.15;
+    }catch(error){console.warn(`Model lantai ${config.name} gagal dimuat`,error);addFallbackFloor(tower,nextY,config,index);nextY+=2.9;}
+  }
+  addPreviewSign(tower,nextY);
 }
-function addFloor(tower,index,weapon,stone,dark){
-  // Jarak 1.7 unit memberi ruang visual di antara lantai sehingga senjata tiap level terlihat jelas.
-  const y=.78+index*1.7,group=new THREE.Group();group.position.y=y;
-  const width=2.08-index*.11;
-  const body=new THREE.Mesh(new THREE.BoxGeometry(width,.83,width),stone);body.castShadow=body.receiveShadow=true;group.add(body);
-  const rim=new THREE.Mesh(new THREE.BoxGeometry(width+.16,.11,width+.16),dark);rim.position.y=.42;group.add(rim);
-  const glow=new THREE.MeshBasicMaterial({color:weapon.color});
-  // Rune cahaya depan: membedakan setiap lantai dari jauh.
-  const rune=new THREE.Mesh(new THREE.PlaneGeometry(.38,.38),glow);rune.position.set(0,.05,-width/2-.011);group.add(rune);
-  for(const x of[-width*.38,width*.38]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.09,.12,.8,6),dark);p.position.set(x,.4,-width*.38);group.add(p);}
-  addWeapon(group,weapon,index,glow,dark,width);const light=new THREE.PointLight(weapon.color,.55,3.2);light.position.y=.5;group.add(light);tower.add(group);
+function fitModel(model,targetWidth,targetHeight){
+  model.updateMatrixWorld(true);let box=new THREE.Box3().setFromObject(model),size=box.getSize(new THREE.Vector3());
+  const factor=Math.min(targetWidth/Math.max(size.x,size.z),targetHeight/Math.max(size.y,.01));model.scale.multiplyScalar(factor);
+  model.updateMatrixWorld(true);box=new THREE.Box3().setFromObject(model);model.position.y-=box.min.y;return box.max.y-box.min.y;
 }
-function addWeapon(group,weapon,index,glow,dark,width){
-  if(weapon.key==='CANNON'){const barrel=new THREE.Mesh(new THREE.CylinderGeometry(.16,.25,.9,10),dark);barrel.rotation.x=Math.PI/2;barrel.position.set(0,.5,-width*.48);group.add(barrel);}
-  if(weapon.key==='TESLA'){for(let i=0;i<3;i++){const spike=new THREE.Mesh(new THREE.ConeGeometry(.1,.65,5),glow);const a=i*Math.PI*2/3;spike.position.set(Math.cos(a)*.3,.45,Math.sin(a)*.3);group.add(spike);}}
-  if(weapon.key==='FREEZE'){const crystal=new THREE.Mesh(new THREE.ConeGeometry(.3,.9,6),glow);crystal.position.y=.48;group.add(crystal);}
-  if(weapon.key==='ROCKET'){const tube=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.82,8),dark);tube.rotation.x=Math.PI/2;tube.position.set(0,.48,-width*.45);group.add(tube);const tip=new THREE.Mesh(new THREE.ConeGeometry(.18,.38,7),glow);tip.rotation.x=-Math.PI/2;tip.position.set(0,.48,-width*.88);group.add(tip);}
-  if(weapon.key==='LASER'){const orb=new THREE.Mesh(new THREE.SphereGeometry(.3,12,10),glow);orb.position.y=.64;group.add(orb);const ring=new THREE.Mesh(new THREE.TorusGeometry(.43,.045,7,16),glow);ring.rotation.x=Math.PI/2;ring.position.y=.64;group.add(ring);}
+function addFloorMarker(floor,config,index,height){
+  const glow=new THREE.MeshBasicMaterial({color:config.color});
+  const ring=new THREE.Mesh(new THREE.TorusGeometry(1.38,.055,7,20),glow);ring.rotation.x=Math.PI/2;ring.position.y=.1;floor.add(ring);
+  const rune=new THREE.Mesh(new THREE.OctahedronGeometry(.18),glow);rune.position.set(0,height+.28,0);floor.add(rune);
+  const light=new THREE.PointLight(config.color,.72,3.8);light.position.set(0,height+.25,0);floor.add(light);
+  // Pilar kecil memisahkan visual antar lantai agar senjata/model mudah dilihat.
+  const pillarMat=new THREE.MeshStandardMaterial({color:0x303947,roughness:.7});
+  for(const a of[0,Math.PI/2,Math.PI,Math.PI*1.5]){const p=new THREE.Mesh(new THREE.CylinderGeometry(.08,.12,.75,6),pillarMat);p.position.set(Math.cos(a)*1.35,-.38,Math.sin(a)*1.35);floor.add(p);}
 }
+function addFallbackFloor(tower,y,config,index){const body=new THREE.Mesh(new THREE.CylinderGeometry(1.25,1.4,.8,8),new THREE.MeshStandardMaterial({color:0x586477,roughness:.75}));body.position.y=y+.4;body.castShadow=true;tower.add(body);const rune=new THREE.Mesh(new THREE.OctahedronGeometry(.22),new THREE.MeshBasicMaterial({color:config.color}));rune.position.y=y+.9;tower.add(rune);}
+function addPreviewSign(tower,y){const board=new THREE.Mesh(new THREE.BoxGeometry(3.2,.72,.18),new THREE.MeshStandardMaterial({color:0x3b2d25,roughness:.82}));board.position.set(0,1.25,3.15);tower.add(board);const pole=new THREE.Mesh(new THREE.CylinderGeometry(.05,.06,1.8,6),new THREE.MeshStandardMaterial({color:0x4d3829,roughness:.84}));pole.position.set(0,.9,3.15);tower.add(pole);}
