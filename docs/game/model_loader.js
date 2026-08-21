@@ -8,12 +8,22 @@ const MODELS={
   houseA:'assets/models/Fantasy%20House.glb',
   houseB:'assets/models/Fantasy%20House-BH2XHWUNmF.glb',
   houseC:'assets/models/Fantasy%20House-dcPho4SUA3.glb',
+  inn:'assets/models/Fantasy%20Inn.glb',
+  blacksmith:'assets/models/Blacksmith.glb',
+  sawmill:'assets/models/Fantasy%20Sawmill.glb',
+  stable:'assets/models/Fantasy%20Stable.glb',
   tower:'assets/models/Bell%20Tower.glb',
   barrel:'assets/models/Barrel.glb',
   crate:'assets/models/Crate.glb',
   cart:'assets/models/Cart.glb',
   bench:'assets/models/Bench.glb',
   market:'assets/models/Market%20Stand.glb',
+  market2:'assets/models/Market%20Stand-DGIM5HGISb.glb',
+  well:'assets/models/Well.glb',
+  fence:'assets/models/Fence.glb',
+  hay:'assets/models/Hay.glb',
+  bags:'assets/models/Bags.glb',
+  bonfire:'assets/models/Bonfire.glb',
   rocks:'assets/models/Rocks.glb',
   package:'assets/models/Package.glb',
 };
@@ -72,6 +82,12 @@ export async function loadVillageModels(scene){
   right.forEach((item,i)=>{const key=types[(i+1)%types.length];jobs.push(place(scene,key,{position:item.slice(0,3),rotationY:Math.PI/2+item[3],height:5.2,name:`village_house_right_${i}`}));});
   jobs.push(place(scene,'tower',{position:[0,0,-22],rotationY:0,height:12.5,name:'village_bell_tower'}));
 
+  // Bangunan publik di pinggir street: membuat desa terasa ramai tanpa menutup jalur utama.
+  jobs.push(place(scene,'inn',{position:[-16,0,2],rotationY:-Math.PI/2,height:6.8,name:'village_inn'}));
+  jobs.push(place(scene,'blacksmith',{position:[16,0,-1],rotationY:Math.PI/2,height:6.1,name:'village_blacksmith'}));
+  jobs.push(place(scene,'sawmill',{position:[-16,0,-12],rotationY:-Math.PI/2,height:5.6,name:'village_sawmill'}));
+  jobs.push(place(scene,'stable',{position:[16,0,-13],rotationY:Math.PI/2,height:5.5,name:'village_stable'}));
+
   // Props memakai scale berdasarkan tinggi dunia juga agar proporsinya konsisten.
   jobs.push(place(scene,'barrel',{position:[2.7,0,2.4],rotationY:.2,height:.82,name:'village_barrel_a'}));
   jobs.push(place(scene,'barrel',{position:[3.25,0,2.35],rotationY:-.35,height:.7,name:'village_barrel_b'}));
@@ -82,6 +98,13 @@ export async function loadVillageModels(scene){
   jobs.push(place(scene,'market',{position:[-3.6,0,-2.2],rotationY:.2,height:2.8,name:'village_market'}));
   jobs.push(place(scene,'rocks',{position:[-5.3,0,-6.5],rotationY:.3,height:.7,name:'village_rocks_a'}));
   jobs.push(place(scene,'rocks',{position:[5.4,0,-10.2],rotationY:-.4,height:.55,name:'village_rocks_b'}));
+  // Detail alun-alun: pasar, sumur, pagar, jerami, tas, dan api unggun.
+  jobs.push(place(scene,'well',{position:[0,0,1.8],rotationY:0,height:1.1,name:'village_well'}));
+  jobs.push(place(scene,'market2',{position:[-3.8,0,.2],rotationY:.25,height:2.9,name:'village_market_b'}));
+  jobs.push(place(scene,'bonfire',{position:[3.9,0,.4],rotationY:0,height:.65,name:'village_bonfire'}));
+  jobs.push(place(scene,'hay',{position:[14.2,0,-12.2],rotationY:.3,height:.7,name:'village_hay'}));
+  jobs.push(place(scene,'bags',{position:[-14.2,0,-11.7],rotationY:-.2,height:.7,name:'village_bags'}));
+  for(let i=0;i<5;i++)jobs.push(place(scene,'fence',{position:[-5.8+i*1.05,0,7.9],rotationY:0,height:.75,name:`village_fence_${i}`}));
 
   const loaded=await Promise.all(jobs);
   if(loaded.some(Boolean))hideProceduralBuildings(scene);
