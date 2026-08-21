@@ -10,7 +10,7 @@ const scene=new THREE.Scene();
 // Kamera awal lebih tinggi/jauh agar desa terlihat, bukan hanya atap rumah.
 const camera=new THREE.PerspectiveCamera(58,innerWidth/innerHeight,.1,100);camera.position.set(7,6.5,11);
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,powerPreference:'high-performance'});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.2;renderer.outputColorSpace=THREE.SRGBColorSpace;
-buildWorld(scene);
+const environment=buildWorld(scene);
 // Model GLB lokal akan mengganti fallback procedural secara otomatis bila sudah di-upload.
 loadVillageModels(scene);
 const player=new Player(scene),monster=new ForestMonster(scene);const controls=new OrbitControls(camera,canvas);controls.enableDamping=true;controls.dampingFactor=.08;controls.minDistance=4.5;controls.maxDistance=16;controls.maxPolarAngle=Math.PI*.46;controls.target.copy(player.group.position).add(new THREE.Vector3(0,1,0));
@@ -24,7 +24,7 @@ function resetCamera(){
 }
 addEventListener('keydown',(event)=>{if(event.code==='KeyR')resetCamera();});
 function loop(){
-  const dt=Math.min(clock.getDelta(),.05);player.update(dt,keys,camera);monster.update(dt,player);
+  const dt=Math.min(clock.getDelta(),.05);environment.update(dt);player.update(dt,keys,camera);monster.update(dt,player);
   const nextTarget=player.group.position.clone().add(new THREE.Vector3(0,1,0));
   orbitOffset.copy(camera.position).sub(controls.target);
   // Jika kamera terseret terlalu dekat/aneh, pulihkan offset kamera yang stabil.
@@ -33,6 +33,7 @@ function loop(){
   const distance=player.group.position.distanceTo(monster.group.position);
   document.querySelector('#monster-status').textContent=distance<5?'⚠ Monster hutan memperhatikanmu':'👾 Monster hutan terlihat di kejauhan';
   document.querySelector('#place').textContent=player.group.position.z<-5?'Tepi sungai':'Desa Medieval Ampera';
+  document.querySelector('#time-of-day').textContent=environment.getLabel();
   controls.update();renderer.render(scene,camera);requestAnimationFrame(loop);
 }
 resetCamera();loop();
