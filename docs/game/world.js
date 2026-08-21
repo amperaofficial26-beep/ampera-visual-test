@@ -4,7 +4,7 @@ import { terrainHeight } from './terrain.js';
 
 // Versi Three.js dari brief medieval village. Pencahayaan/shadow/PBR ringan dibuat untuk browser.
 export function buildWorld(scene) {
-  scene.background=new THREE.Color(0x73b5df);scene.fog=new THREE.Fog(0x9bc9e2,30,68);
+  scene.background=new THREE.Color(0x73b5df);scene.fog=new THREE.Fog(0x9bc9e2,45,115);
   scene.add(new THREE.HemisphereLight(0xdff2ff,0x31415a,1.65));
   const sun=new THREE.DirectionalLight(0xffe0ad,4.25);sun.position.set(-16,21,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;sun.shadow.bias=-.00018;scene.add(sun);
   const skyFill=new THREE.DirectionalLight(0x82b7f5,.62);skyFill.position.set(14,8,-16);scene.add(skyFill);
@@ -14,7 +14,7 @@ const material=(color,roughness=.78,metalness=0)=>new THREE.MeshStandardMaterial
 const stone=material(0x77756f,.9),darkStone=material(0x454a52,.86),plaster=material(0xe2d1af,.94),timber=material(0x30261f,.82),roof=material(0x9a4933,.78),moss=material(0x506a37,.95),wood=material(0x64432f,.86);
 function add(scene,g,x,y,z,mat,cast=true){const m=new THREE.Mesh(g,mat);m.position.set(x,y,z);m.castShadow=cast;m.receiveShadow=true;scene.add(m);return m;}
 function createGround(scene){
-  const geometry=new THREE.PlaneGeometry(64,64,100,100),position=geometry.attributes.position,colors=[];
+  const geometry=new THREE.PlaneGeometry(100,100,140,140),position=geometry.attributes.position,colors=[];
   for(let i=0;i<position.count;i++){const x=position.getX(i),z=-position.getY(i);position.setZ(i,terrainHeight(x,z));const c=new THREE.Color().setHSL(.30+Math.random()*.025,.48,.32+Math.random()*.11);colors.push(c.r,c.g,c.b);}
   geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.computeVertexNormals();
   const ground=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.97}));ground.rotation.x=-Math.PI/2;ground.receiveShadow=true;scene.add(ground);
@@ -22,7 +22,7 @@ function createGround(scene){
 function createCobblestoneStreet(scene){
   // Batu jalan dihasilkan satu per satu agar ukuran, posisi, warna dan celahnya bervariasi.
   const cobbles=new THREE.Group();const variants=[material(0x77736d,.95),material(0x8b8378,.95),material(0x625f5c,.95),material(0x9a8d7b,.95)];
-  for(let row=0;row<58;row++){const z=8-row*.57;for(let col=-4;col<=4;col++){if(Math.random()<.11)continue;const width=.36+Math.random()*.18,depth=.32+Math.random()*.15;const rock=new THREE.Mesh(new THREE.BoxGeometry(width,.07+Math.random()*.035,depth),variants[Math.floor(Math.random()*variants.length)]);rock.position.set(col*.5+(Math.random()-.5)*.08,terrainHeight(col*.5,z)+.04,z+(Math.random()-.5)*.07);rock.rotation.y=(Math.random()-.5)*.15;rock.castShadow=rock.receiveShadow=true;cobbles.add(rock);if(Math.random()<.14){const grass=new THREE.Mesh(new THREE.PlaneGeometry(.1,.18),moss);grass.rotation.x=-Math.PI/2;grass.position.set(rock.position.x+.18,terrainHeight(rock.position.x+.18,rock.position.z+.2)+.08,rock.position.z+.2);cobbles.add(grass);}}
+  for(let row=0;row<96;row++){const z=14-row*.57;for(let col=-4;col<=4;col++){if(Math.random()<.11)continue;const width=.36+Math.random()*.18,depth=.32+Math.random()*.15;const rock=new THREE.Mesh(new THREE.BoxGeometry(width,.07+Math.random()*.035,depth),variants[Math.floor(Math.random()*variants.length)]);rock.position.set(col*.5+(Math.random()-.5)*.08,terrainHeight(col*.5,z)+.04,z+(Math.random()-.5)*.07);rock.rotation.y=(Math.random()-.5)*.15;rock.castShadow=rock.receiveShadow=true;cobbles.add(rock);if(Math.random()<.14){const grass=new THREE.Mesh(new THREE.PlaneGeometry(.1,.18),moss);grass.rotation.x=-Math.PI/2;grass.position.set(rock.position.x+.18,terrainHeight(rock.position.x+.18,rock.position.z+.2)+.08,rock.position.z+.2);cobbles.add(grass);}}
   }scene.add(cobbles);
 }
 function createStreetBuildings(scene){
@@ -75,7 +75,7 @@ function createGrassBlades(scene){
   const count=1500,blade=new THREE.PlaneGeometry(.055,.52,1,2);blade.translate(0,.26,0);
   const grass=new THREE.InstancedMesh(blade,new THREE.MeshStandardMaterial({color:0x527e3c,roughness:.95,side:THREE.DoubleSide}),count);
   const matrix=new THREE.Matrix4(),quat=new THREE.Quaternion(),scale=new THREE.Vector3(),pos=new THREE.Vector3();
-  for(let i=0;i<count;i++){let x,z;do{x=(Math.random()-.5)*58;z=(Math.random()-.5)*58;}while(Math.abs(x)<3.1||Math.abs(z)>28);pos.set(x,terrainHeight(x,z)+.01,z);quat.setFromAxisAngle(new THREE.Vector3(0,1,0),Math.random()*Math.PI);scale.set(.65+Math.random()*.75,.55+Math.random()*.8,1);matrix.compose(pos,quat,scale);grass.setMatrixAt(i,matrix);}
+  for(let i=0;i<count;i++){let x,z;do{x=(Math.random()-.5)*92;z=(Math.random()-.5)*92;}while(Math.abs(x)<3.1||Math.abs(z)>45);pos.set(x,terrainHeight(x,z)+.01,z);quat.setFromAxisAngle(new THREE.Vector3(0,1,0),Math.random()*Math.PI);scale.set(.65+Math.random()*.75,.55+Math.random()*.8,1);matrix.compose(pos,quat,scale);grass.setMatrixAt(i,matrix);}
   grass.instanceMatrix.needsUpdate=true;scene.add(grass);
 }
 function createTree(scene,x,z,s){
